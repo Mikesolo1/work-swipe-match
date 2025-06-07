@@ -11,6 +11,13 @@ import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
 import BottomNav from '@/components/BottomNav';
 import MatchModal from '@/components/MatchModal';
 import { useNavigate } from 'react-router-dom';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Vacancy = Tables<'vacancies'> & {
+  employer?: Tables<'users'>;
+};
+
+type UserProfile = Tables<'users'>;
 
 const Swipe = () => {
   const { user } = useAuth();
@@ -95,6 +102,7 @@ const Swipe = () => {
   }
 
   const currentTarget = targets[currentIndex];
+  const isVacancy = user?.role === 'seeker';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
@@ -131,7 +139,7 @@ const Swipe = () => {
               className="absolute inset-0"
             >
               <Card className="h-full bg-white shadow-lg">
-                {user?.role === 'seeker' ? (
+                {isVacancy ? (
                   // Карточка вакансии для соискателя
                   <>
                     <CardHeader className="text-center pb-4">
@@ -140,23 +148,23 @@ const Swipe = () => {
                           <Building2 className="text-white" size={24} />
                         </div>
                       </div>
-                      <CardTitle className="text-xl mb-2">{currentTarget.title}</CardTitle>
-                      {currentTarget.employer?.company && (
-                        <p className="text-gray-600">{currentTarget.employer.company}</p>
+                      <CardTitle className="text-xl mb-2">{(currentTarget as Vacancy).title}</CardTitle>
+                      {(currentTarget as Vacancy).employer?.company && (
+                        <p className="text-gray-600">{(currentTarget as Vacancy).employer?.company}</p>
                       )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-gray-700">{currentTarget.description}</p>
+                      <p className="text-gray-700">{(currentTarget as Vacancy).description}</p>
                       
-                      {(currentTarget.salary_min || currentTarget.salary_max) && (
+                      {((currentTarget as Vacancy).salary_min || (currentTarget as Vacancy).salary_max) && (
                         <div className="flex items-center gap-2 text-green-600">
                           <DollarSign size={16} />
                           <span className="font-medium">
-                            {currentTarget.salary_min && currentTarget.salary_max 
-                              ? `${currentTarget.salary_min?.toLocaleString()} - ${currentTarget.salary_max?.toLocaleString()} ₽`
-                              : currentTarget.salary_min 
-                                ? `от ${currentTarget.salary_min?.toLocaleString()} ₽`
-                                : `до ${currentTarget.salary_max?.toLocaleString()} ₽`
+                            {(currentTarget as Vacancy).salary_min && (currentTarget as Vacancy).salary_max 
+                              ? `${(currentTarget as Vacancy).salary_min?.toLocaleString()} - ${(currentTarget as Vacancy).salary_max?.toLocaleString()} ₽`
+                              : (currentTarget as Vacancy).salary_min 
+                                ? `от ${(currentTarget as Vacancy).salary_min?.toLocaleString()} ₽`
+                                : `до ${(currentTarget as Vacancy).salary_max?.toLocaleString()} ₽`
                             }
                           </span>
                         </div>
@@ -167,25 +175,25 @@ const Swipe = () => {
                         <span>{currentTarget.city}</span>
                       </div>
 
-                      {currentTarget.skills_required && currentTarget.skills_required.length > 0 && (
+                      {(currentTarget as Vacancy).skills_required && (currentTarget as Vacancy).skills_required.length > 0 && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 mb-2">Требуемые навыки:</p>
                           <div className="flex flex-wrap gap-2">
-                            {currentTarget.skills_required.map((skill, index) => (
+                            {(currentTarget as Vacancy).skills_required.map((skill, index) => (
                               <Badge key={index} variant="secondary">{skill}</Badge>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {currentTarget.team_lead_name && (
+                      {(currentTarget as Vacancy).team_lead_name && (
                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <Avatar className="w-10 h-10">
-                            <AvatarImage src={currentTarget.team_lead_avatar} />
-                            <AvatarFallback>{currentTarget.team_lead_name[0]}</AvatarFallback>
+                            <AvatarImage src={(currentTarget as Vacancy).team_lead_avatar} />
+                            <AvatarFallback>{(currentTarget as Vacancy).team_lead_name?.[0]}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-sm font-medium">{currentTarget.team_lead_name}</p>
+                            <p className="text-sm font-medium">{(currentTarget as Vacancy).team_lead_name}</p>
                             <p className="text-xs text-gray-500">Тимлид</p>
                           </div>
                         </div>
@@ -197,52 +205,52 @@ const Swipe = () => {
                   <>
                     <CardHeader className="text-center pb-4">
                       <Avatar className="w-20 h-20 mx-auto mb-4">
-                        <AvatarImage src={currentTarget.avatar_url} />
+                        <AvatarImage src={(currentTarget as UserProfile).avatar_url} />
                         <AvatarFallback>
                           <User className="w-8 h-8" />
                         </AvatarFallback>
                       </Avatar>
                       <CardTitle className="text-xl">
-                        {currentTarget.first_name} {currentTarget.last_name}
+                        {(currentTarget as UserProfile).first_name} {(currentTarget as UserProfile).last_name}
                       </CardTitle>
-                      {currentTarget.username && (
-                        <p className="text-gray-500">@{currentTarget.username}</p>
+                      {(currentTarget as UserProfile).username && (
+                        <p className="text-gray-500">@{(currentTarget as UserProfile).username}</p>
                       )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {currentTarget.city && (
+                      {(currentTarget as UserProfile).city && (
                         <div className="flex items-center gap-2 text-gray-600">
                           <MapPin size={16} />
-                          <span>{currentTarget.city}</span>
+                          <span>{(currentTarget as UserProfile).city}</span>
                         </div>
                       )}
 
-                      {currentTarget.salary_expectation && (
+                      {(currentTarget as UserProfile).salary_expectation && (
                         <div className="flex items-center gap-2 text-green-600">
                           <DollarSign size={16} />
-                          <span className="font-medium">от {currentTarget.salary_expectation.toLocaleString()} ₽</span>
+                          <span className="font-medium">от {(currentTarget as UserProfile).salary_expectation.toLocaleString()} ₽</span>
                         </div>
                       )}
 
-                      {currentTarget.experience && (
+                      {(currentTarget as UserProfile).experience && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 mb-1">Опыт работы:</p>
-                          <p className="text-gray-600">{currentTarget.experience}</p>
+                          <p className="text-gray-600">{(currentTarget as UserProfile).experience}</p>
                         </div>
                       )}
 
-                      {currentTarget.achievement && (
+                      {(currentTarget as UserProfile).achievement && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 mb-1">Главное достижение:</p>
-                          <p className="text-gray-600">{currentTarget.achievement}</p>
+                          <p className="text-gray-600">{(currentTarget as UserProfile).achievement}</p>
                         </div>
                       )}
 
-                      {currentTarget.skills && currentTarget.skills.length > 0 && (
+                      {(currentTarget as UserProfile).skills && (currentTarget as UserProfile).skills.length > 0 && (
                         <div>
                           <p className="text-sm font-medium text-gray-700 mb-2">Навыки:</p>
                           <div className="flex flex-wrap gap-2">
-                            {currentTarget.skills.map((skill, index) => (
+                            {(currentTarget as UserProfile).skills.map((skill, index) => (
                               <Badge key={index} variant="secondary">{skill}</Badge>
                             ))}
                           </div>

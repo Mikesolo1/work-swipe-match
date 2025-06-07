@@ -9,16 +9,258 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      cities: {
+        Row: {
+          id: string
+          is_remote: boolean | null
+          name: string
+          region: string | null
+        }
+        Insert: {
+          id?: string
+          is_remote?: boolean | null
+          name: string
+          region?: string | null
+        }
+        Update: {
+          id?: string
+          is_remote?: boolean | null
+          name?: string
+          region?: string | null
+        }
+        Relationships: []
+      }
+      job_categories: {
+        Row: {
+          id: string
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "job_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          participant_a: string | null
+          participant_b: string | null
+          vacancy_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          participant_a?: string | null
+          participant_b?: string | null
+          vacancy_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          participant_a?: string | null
+          participant_b?: string | null
+          vacancy_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_participant_a_fkey"
+            columns: ["participant_a"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_participant_b_fkey"
+            columns: ["participant_b"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_vacancy_id_fkey"
+            columns: ["vacancy_id"]
+            isOneToOne: false
+            referencedRelation: "vacancies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swipes: {
+        Row: {
+          created_at: string | null
+          direction: Database["public"]["Enums"]["swipe_direction"]
+          id: string
+          swiper_id: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["target_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          direction: Database["public"]["Enums"]["swipe_direction"]
+          id?: string
+          swiper_id?: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["target_type"]
+        }
+        Update: {
+          created_at?: string | null
+          direction?: Database["public"]["Enums"]["swipe_direction"]
+          id?: string
+          swiper_id?: string | null
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["target_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swipes_swiper_id_fkey"
+            columns: ["swiper_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          achievement: string | null
+          avatar_url: string | null
+          city: string | null
+          company: string | null
+          created_at: string | null
+          experience: string | null
+          first_name: string
+          id: string
+          last_name: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          salary_expectation: number | null
+          skills: string[] | null
+          telegram_id: number
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          achievement?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string | null
+          experience?: string | null
+          first_name: string
+          id?: string
+          last_name?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          salary_expectation?: number | null
+          skills?: string[] | null
+          telegram_id: number
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          achievement?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string | null
+          experience?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          salary_expectation?: number | null
+          skills?: string[] | null
+          telegram_id?: number
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      vacancies: {
+        Row: {
+          city: string
+          created_at: string | null
+          description: string
+          employer_id: string | null
+          id: string
+          salary_max: number | null
+          salary_min: number | null
+          skills_required: string[] | null
+          team_lead_avatar: string | null
+          team_lead_name: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          description: string
+          employer_id?: string | null
+          id?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          skills_required?: string[] | null
+          team_lead_avatar?: string | null
+          team_lead_name?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          description?: string
+          employer_id?: string | null
+          id?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          skills_required?: string[] | null
+          team_lead_avatar?: string | null
+          team_lead_name?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacancies_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clean_expired_matches: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      swipe_direction: "like" | "dislike"
+      target_type: "user" | "vacancy"
+      user_role: "seeker" | "employer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +375,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      swipe_direction: ["like", "dislike"],
+      target_type: ["user", "vacancy"],
+      user_role: ["seeker", "employer"],
+    },
   },
 } as const

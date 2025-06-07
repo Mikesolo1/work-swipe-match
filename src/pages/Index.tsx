@@ -1,34 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Heart, UserSearch, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading, signIn } = useAuth();
+  const navigate = useNavigate();
+  const [isInitializing, setIsInitializing] = useState(true);
   const [telegramUser, setTelegramUser] = useState<any>(null);
 
   useEffect(() => {
-    // Simulate Telegram WebApp initialization
     const initTelegram = () => {
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Mock user data for development
-        const mockUser = {
-          id: 123456789,
-          first_name: "Александр",
-          last_name: "Петров",
-          username: "alex_petrov",
-          photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
-        };
-        
-        setTelegramUser(mockUser);
-        setIsAuthenticated(true);
-      } else {
-        // For development without Telegram
-        setTimeout(() => {
+        if (tg.initDataUnsafe.user) {
+          setTelegramUser(tg.initDataUnsafe.user);
+        } else {
+          // Mock для разработки
           const mockUser = {
             id: 123456789,
             first_name: "Александр",
@@ -37,23 +30,42 @@ const Index = () => {
             photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
           };
           setTelegramUser(mockUser);
-          setIsAuthenticated(true);
-        }, 1000);
+        }
+      } else {
+        // Для разработки без Telegram
+        const mockUser = {
+          id: 123456789,
+          first_name: "Александр",
+          last_name: "Петров",
+          username: "alex_petrov",
+          photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
+        };
+        setTelegramUser(mockUser);
       }
+      setIsInitializing(false);
     };
 
     initTelegram();
   }, []);
 
-  const handleRoleSelect = (role: 'seeker' | 'employer') => {
-    console.log(`Selected role: ${role}`);
-    // Here we would navigate to the profile setup
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
-    window.location.href = '/profile';
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/swipe');
+    }
+  }, [user, loading, navigate]);
+
+  const handleRoleSelect = async (role: 'seeker' | 'employer') => {
+    if (!telegramUser) return;
+    
+    try {
+      await signIn(telegramUser, role);
+      navigate('/profile');
+    } catch (error) {
+      console.error('Error during sign in:', error);
+    }
   };
 
-  if (!isAuthenticated) {
+  if (loading || isInitializing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <motion.div 

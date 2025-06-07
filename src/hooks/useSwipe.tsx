@@ -40,6 +40,7 @@ export const useSwipe = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['swipe_targets'] });
     },
   });
 
@@ -70,26 +71,50 @@ export const useSwipeTargets = () => {
 
       if (user.role === 'seeker') {
         // Соискатели видят вакансии
-        const { data: vacancies, error } = await supabase
+        let query = supabase
           .from('vacancies')
           .select(`
             *,
             employer:users!vacancies_employer_id_fkey(*)
-          `)
-          .not('id', 'in', `(${swipedVacancyIds.join(',')})`)
-          .limit(20);
+          `);
+
+        // Исключаем уже просвайпанные вакансии
+        if (swipedVacancyIds.length > 0) {
+          query = query.not('id', 'in', `(${swipedVacancyIds.join(',')})`);
+        }
+
+        // Фильтрация по городу (если указан у пользователя)
+        if (user.city && user.city !== 'Удаленная работа') {
+          query = query.or(`city.eq.${user.city},city.eq.Удаленная работа`);
+        }
+
+        const { data: vacancies, error } = await query
+          .limit(20)
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
         return vacancies || [];
       } else {
         // Работодатели видят соискателей
-        const { data: users, error } = await supabase
+        let query = supabase
           .from('users')
           .select('*')
           .eq('role', 'seeker')
-          .not('id', 'in', `(${swipedUserIds.join(',')})`)
-          .neq('id', user.id)
-          .limit(20);
+          .neq('id', user.id);
+
+        // Исключаем уже просвайпанных пользователей
+        if (swipedUserIds.length > 0) {
+          query = query.not('id', 'in', `(${swipedUserIds.join(',')})`);
+        }
+
+        // Фильтрация по городу (если указан у работодателя)
+        if (user.city && user.city !== 'Удаленная работа') {
+          query = query.or(`city.eq.${user.city},city.eq.Удаленная работа,city.is.null`);
+        }
+
+        const { data: users, error } = await query
+          .limit(20)
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
         return users || [];

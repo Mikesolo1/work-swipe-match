@@ -1,78 +1,68 @@
 
 import React, { useState } from 'react';
-import SwipeCard from '@/components/SwipeCard';
-import MatchModal from '@/components/MatchModal';
-import BottomNav from '@/components/BottomNav';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MapPin, DollarSign, User, Building2, Heart, X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
+import BottomNav from '@/components/BottomNav';
+import MatchModal from '@/components/MatchModal';
+import { useNavigate } from 'react-router-dom';
 
 const Swipe = () => {
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const { user } = useAuth();
+  const { data: targets, isLoading } = useSwipeTargets();
+  const { createSwipe } = useSwipe();
+  const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
 
-  // Mock data - в реальном приложении будет загружаться с сервера
-  const mockCards = [
-    {
-      id: 1,
-      type: 'vacancy',
-      title: 'Frontend Developer',
-      description: 'Ищем талантливого React разработчика в дружную команду',
-      salary: '150000-200000',
-      company: 'TechCorp',
-      teamLead: {
-        name: 'Анна Иванова',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b5c5?w=400&h=400&fit=crop&crop=face'
-      }
-    },
-    {
-      id: 2,
-      type: 'user',
-      name: 'Михаил Петров',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      city: 'Санкт-Петербург',
-      skills: ['JavaScript', 'React', 'Node.js'],
-      experience: 'Frontend разработчик с опытом 3 года',
-      achievement: 'Создал веб-приложение, которым пользуется 100K+ пользователей',
-      salary_expectation: 180000
-    },
-    {
-      id: 3,
-      type: 'vacancy',
-      title: 'Backend Developer',
-      description: 'Требуется опытный backend разработчик для работы с микросервисами',
-      salary: '180000-250000',
-      company: 'StartupHub',
-      teamLead: {
-        name: 'Дмитрий Сидоров',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face'
-      }
-    }
-  ];
+  const handleSwipe = async (direction: 'like' | 'dislike') => {
+    if (!targets || !targets[currentIndex] || !user) return;
 
-  const handleSwipe = (direction: 'like' | 'dislike') => {
-    console.log(`Swiped ${direction} on card ${currentCardIndex}`);
+    const target = targets[currentIndex];
     
-    // Симуляция мэтча (в реальности проверяется на сервере)
-    if (direction === 'like' && Math.random() > 0.7) {
-      setMatchData(mockCards[currentCardIndex]);
-      setShowMatch(true);
+    try {
+      await createSwipe.mutateAsync({
+        target_id: target.id,
+        target_type: user.role === 'seeker' ? 'vacancy' : 'user',
+        direction
+      });
+
+      // Симуляция мэтча (в реальности проверяется триггером в БД)
+      if (direction === 'like' && Math.random() > 0.7) {
+        setMatchData(target);
+        setShowMatch(true);
+      }
+
+      setTimeout(() => {
+        setCurrentIndex(prev => prev + 1);
+      }, 300);
+    } catch (error) {
+      console.error('Error creating swipe:', error);
     }
-
-    // Переход к следующей карточке
-    setTimeout(() => {
-      setCurrentCardIndex(prev => prev + 1);
-    }, 300);
   };
 
-  const handleMatchClose = () => {
-    setShowMatch(false);
-    setMatchData(null);
+  const handleCreateVacancy = () => {
+    navigate('/create-vacancy');
   };
 
-  if (currentCardIndex >= mockCards.length) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!targets || targets.length === 0 || currentIndex >= targets.length) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center pb-20">
-        <div className="text-center p-6">
+        <div className="text-center p-6 max-w-md">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -84,13 +74,27 @@ const Swipe = () => {
             Пока всё!
           </h2>
           <p className="text-gray-600 mb-6">
-            Вы просмотрели все доступные карточки. Скоро появятся новые!
+            {user?.role === 'employer' 
+              ? 'Вы просмотрели всех доступных кандидатов. Скоро появятся новые!'
+              : 'Вы просмотрели все доступные вакансии. Скоро появятся новые!'
+            }
           </p>
+          {user?.role === 'employer' && (
+            <Button 
+              onClick={handleCreateVacancy}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Plus className="mr-2" size={16} />
+              Создать вакансию
+            </Button>
+          )}
         </div>
         <BottomNav activeTab="swipe" />
       </div>
     );
   }
+
+  const currentTarget = targets[currentIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
@@ -102,25 +106,172 @@ const Swipe = () => {
         >
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Мэтчворк</h1>
           <p className="text-gray-600">
-            {mockCards.length - currentCardIndex} карточек осталось
+            {targets.length - currentIndex} карточек осталось
           </p>
+          {user?.role === 'employer' && (
+            <Button 
+              variant="outline" 
+              onClick={handleCreateVacancy}
+              className="mt-2"
+              size="sm"
+            >
+              <Plus className="mr-1" size={14} />
+              Создать вакансию
+            </Button>
+          )}
         </motion.div>
 
         <div className="relative h-[500px] mb-6">
           <AnimatePresence>
-            {mockCards.slice(currentCardIndex, currentCardIndex + 2).map((card, index) => (
-              <SwipeCard
-                key={card.id}
-                card={card}
-                onSwipe={index === 0 ? handleSwipe : undefined}
-                style={{
-                  zIndex: 2 - index,
-                  scale: 1 - index * 0.05,
-                  opacity: 1 - index * 0.3
-                }}
-              />
-            ))}
+            <motion.div
+              key={currentTarget.id}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="absolute inset-0"
+            >
+              <Card className="h-full bg-white shadow-lg">
+                {user?.role === 'seeker' ? (
+                  // Карточка вакансии для соискателя
+                  <>
+                    <CardHeader className="text-center pb-4">
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center">
+                          <Building2 className="text-white" size={24} />
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl mb-2">{currentTarget.title}</CardTitle>
+                      {currentTarget.employer?.company && (
+                        <p className="text-gray-600">{currentTarget.employer.company}</p>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-gray-700">{currentTarget.description}</p>
+                      
+                      {(currentTarget.salary_min || currentTarget.salary_max) && (
+                        <div className="flex items-center gap-2 text-green-600">
+                          <DollarSign size={16} />
+                          <span className="font-medium">
+                            {currentTarget.salary_min && currentTarget.salary_max 
+                              ? `${currentTarget.salary_min?.toLocaleString()} - ${currentTarget.salary_max?.toLocaleString()} ₽`
+                              : currentTarget.salary_min 
+                                ? `от ${currentTarget.salary_min?.toLocaleString()} ₽`
+                                : `до ${currentTarget.salary_max?.toLocaleString()} ₽`
+                            }
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MapPin size={16} />
+                        <span>{currentTarget.city}</span>
+                      </div>
+
+                      {currentTarget.skills_required && currentTarget.skills_required.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Требуемые навыки:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {currentTarget.skills_required.map((skill, index) => (
+                              <Badge key={index} variant="secondary">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {currentTarget.team_lead_name && (
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={currentTarget.team_lead_avatar} />
+                            <AvatarFallback>{currentTarget.team_lead_name[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{currentTarget.team_lead_name}</p>
+                            <p className="text-xs text-gray-500">Тимлид</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </>
+                ) : (
+                  // Карточка кандидата для работодателя
+                  <>
+                    <CardHeader className="text-center pb-4">
+                      <Avatar className="w-20 h-20 mx-auto mb-4">
+                        <AvatarImage src={currentTarget.avatar_url} />
+                        <AvatarFallback>
+                          <User className="w-8 h-8" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <CardTitle className="text-xl">
+                        {currentTarget.first_name} {currentTarget.last_name}
+                      </CardTitle>
+                      {currentTarget.username && (
+                        <p className="text-gray-500">@{currentTarget.username}</p>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {currentTarget.city && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <MapPin size={16} />
+                          <span>{currentTarget.city}</span>
+                        </div>
+                      )}
+
+                      {currentTarget.salary_expectation && (
+                        <div className="flex items-center gap-2 text-green-600">
+                          <DollarSign size={16} />
+                          <span className="font-medium">от {currentTarget.salary_expectation.toLocaleString()} ₽</span>
+                        </div>
+                      )}
+
+                      {currentTarget.experience && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-1">Опыт работы:</p>
+                          <p className="text-gray-600">{currentTarget.experience}</p>
+                        </div>
+                      )}
+
+                      {currentTarget.achievement && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-1">Главное достижение:</p>
+                          <p className="text-gray-600">{currentTarget.achievement}</p>
+                        </div>
+                      )}
+
+                      {currentTarget.skills && currentTarget.skills.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-2">Навыки:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {currentTarget.skills.map((skill, index) => (
+                              <Badge key={index} variant="secondary">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </>
+                )}
+              </Card>
+            </motion.div>
           </AnimatePresence>
+        </div>
+
+        <div className="flex justify-center gap-6">
+          <Button
+            onClick={() => handleSwipe('dislike')}
+            variant="outline"
+            size="lg"
+            className="w-16 h-16 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300"
+          >
+            <X className="text-red-500" size={24} />
+          </Button>
+          <Button
+            onClick={() => handleSwipe('like')}
+            size="lg"
+            className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+          >
+            <Heart className="text-white" size={24} />
+          </Button>
         </div>
       </div>
 
@@ -129,7 +280,7 @@ const Swipe = () => {
       <MatchModal 
         isOpen={showMatch}
         matchData={matchData}
-        onClose={handleMatchClose}
+        onClose={() => setShowMatch(false)}
       />
     </div>
   );

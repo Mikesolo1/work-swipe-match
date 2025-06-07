@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { motion } from 'framer-motion';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [telegramUser, setTelegramUser] = useState(null);
+  const [telegramUser, setTelegramUser] = useState<any>(null);
 
   useEffect(() => {
     // Simulate Telegram WebApp initialization

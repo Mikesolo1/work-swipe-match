@@ -57,14 +57,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Создаем или обновляем пользователя
       const userData = {
         telegram_id: telegramUser.id,
-        username: telegramUser.username || null,
-        first_name: telegramUser.first_name || 'Пользователь',
-        last_name: telegramUser.last_name || null,
-        avatar_url: telegramUser.photo_url || null,
+        username: telegramUser.username,
+        first_name: telegramUser.first_name,
+        last_name: telegramUser.last_name,
+        avatar_url: telegramUser.photo_url,
         role: role
       };
-
-      console.log('Creating/updating user with data:', userData);
 
       const { data, error } = await supabase
         .from('users')
@@ -77,7 +75,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
 
-      console.log('User created/updated successfully:', data);
       setUser(data);
       localStorage.setItem('telegramUser', JSON.stringify(telegramUser));
       localStorage.setItem('userRole', role);
@@ -90,14 +87,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateProfile = async (profileData: Partial<User>) => {
-    if (!user) {
-      console.error('No user found for profile update');
-      return;
-    }
+    if (!user) return;
 
     try {
-      console.log('Updating profile with data:', profileData);
-      
       const { data, error } = await supabase
         .from('users')
         .update(profileData)
@@ -110,7 +102,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
 
-      console.log('Profile updated successfully:', data);
       setUser(data);
     } catch (error) {
       console.error('Update profile error:', error);

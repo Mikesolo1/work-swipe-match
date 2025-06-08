@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCities } from '@/hooks/useCities';
 import { useJobCategories } from '@/hooks/useJobCategories';
 import BottomNav from '@/components/BottomNav';
+import { toast } from "@/components/ui/use-toast";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -31,6 +31,7 @@ const Profile = () => {
   });
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -76,20 +77,40 @@ const Profile = () => {
     if (!user) return;
 
     try {
+      setIsLoading(true);
+      
       const updateData = {
         ...profileData,
         salary_expectation: profileData.salary_expectation ? parseInt(profileData.salary_expectation) : null
       };
       
+      console.log('Saving profile data:', updateData);
       await updateProfile(updateData);
+      
+      toast({
+        title: "Профиль сохранён",
+        description: "Ваши данные успешно обновлены",
+      });
+      
       navigate('/swipe');
     } catch (error) {
       console.error('Error saving profile:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось сохранить профиль",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
@@ -297,8 +318,9 @@ const Profile = () => {
           <Button 
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             onClick={handleSave}
+            disabled={isLoading}
           >
-            Сохранить и продолжить
+            {isLoading ? 'Сохранение...' : 'Сохранить и продолжить'}
           </Button>
         </motion.div>
       </div>

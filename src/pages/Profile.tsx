@@ -27,9 +27,7 @@ const Profile = () => {
     experience: '',
     achievement: '',
     salary_expectation: '',
-    company: '',
-    resume_url: '',
-    portfolio_url: ''
+    company: ''
   });
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -43,9 +41,7 @@ const Profile = () => {
         experience: user.experience || '',
         achievement: user.achievement || '',
         salary_expectation: user.salary_expectation?.toString() || '',
-        company: user.company || '',
-        resume_url: user.resume_url || '',
-        portfolio_url: user.portfolio_url || ''
+        company: user.company || ''
       });
     }
   }, [user]);
@@ -289,74 +285,35 @@ const Profile = () => {
         </motion.div>
 
         {user.role === 'seeker' && (
-          <>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign size={20} />
-                    Ожидания по зарплате
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    placeholder="100000"
-                    type="number"
-                    value={profileData.salary_expectation}
-                    onChange={(e) => setProfileData({...profileData, salary_expectation: e.target.value})}
-                  />
-                  <p className="text-sm text-gray-500 mt-1">Ожидаемая зарплата в рублях</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Ссылки</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ссылка на резюме
-                    </label>
-                    <Input
-                      placeholder="https://example.com/resume.pdf"
-                      type="url"
-                      value={profileData.resume_url}
-                      onChange={(e) => setProfileData({...profileData, resume_url: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ссылка на портфолио
-                    </label>
-                    <Input
-                      placeholder="https://github.com/username или https://portfolio.com"
-                      type="url"
-                      value={profileData.portfolio_url}
-                      onChange={(e) => setProfileData({...profileData, portfolio_url: e.target.value})}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign size={20} />
+                  Ожидания по зарплате
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Input
+                  placeholder="100000"
+                  type="number"
+                  value={profileData.salary_expectation}
+                  onChange={(e) => setProfileData({...profileData, salary_expectation: e.target.value})}
+                />
+                <p className="text-sm text-gray-500 mt-1">Ожидаемая зарплата в рублях</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 1 }}
         >
           <Button 
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"

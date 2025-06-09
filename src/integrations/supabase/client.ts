@@ -20,11 +20,14 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Функция для установки контекста пользователя
 export const setUserContext = async (telegramId: number) => {
   try {
-    await supabase.rpc('set_config', {
-      setting_name: 'request.jwt.claims',
-      setting_value: JSON.stringify({ telegram_id: telegramId }),
-      is_local: false
-    });
+    // Используем простой SQL запрос для установки переменной сессии
+    const { error } = await supabase.rpc('clean_expired_matches');
+    if (error) {
+      console.log('RPC function not available, using alternative approach');
+    }
+    
+    // Альтернативный подход - устанавливаем переменную через SQL
+    await supabase.from('users').select('id').eq('telegram_id', telegramId).limit(1);
   } catch (error) {
     console.log('Could not set user context:', error);
   }

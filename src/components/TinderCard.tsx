@@ -1,6 +1,6 @@
 
 import React, { useRef, useImperativeHandle, forwardRef } from 'react';
-import TinderCard from 'react-tinder-card';
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 
 interface TinderCardWrapperProps {
   children: React.ReactNode;
@@ -15,26 +15,61 @@ export interface TinderCardRef {
 
 const TinderCardWrapper = forwardRef<TinderCardRef, TinderCardWrapperProps>(
   ({ children, onSwipe, onCardLeftScreen, preventSwipe = [] }, ref) => {
-    const cardRef = useRef<any>(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotate = useTransform(x, [-200, 200], [-30, 30]);
+    const opacity = useTransform(x, [-200, -50, 0, 50, 200], [0, 1, 1, 1, 0]);
 
     useImperativeHandle(ref, () => ({
       swipe: (direction = 'left') => {
-        if (cardRef.current) {
-          cardRef.current.swipe(direction);
-        }
+        const exitX = direction === 'right' ? 1000 : -1000;
+        x.set(exitX);
+        onSwipe(direction);
+        setTimeout(() => {
+          onCardLeftScreen?.();
+        }, 300);
       }
     }));
 
+    const handleDragEnd = (event: any, info: PanInfo) => {
+      const offset = info.offset.x;
+      const velocity = info.velocity.x;
+
+      if (Math.abs(offset) > 100 || Math.abs(velocity) > 500) {
+        const direction = offset > 0 ? 'right' : 'left';
+        const exitX = direction === 'right' ? 1000 : -1000;
+        x.set(exitX);
+        onSwipe(direction);
+        setTimeout(() => {
+          onCardLeftScreen?.();
+        }, 300);
+      } else {
+        x.set(0);
+        y.set(0);
+      }
+    };
+
+    const isDragDisabled = preventSwipe.includes('left') && preventSwipe.includes('right');
+
     return (
-      <TinderCard
-        ref={cardRef}
-        onSwipe={onSwipe}
-        onCardLeftScreen={onCardLeftScreen}
-        preventSwipe={preventSwipe}
+      <motion.div
         className="absolute inset-0"
+        style={{
+          x,
+          y,
+          rotate,
+          opacity,
+        }}
+        drag={!isDragDisabled}
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        onDragEnd={handleDragEnd}
+        whileDrag={{ scale: 1.05 }}
+        initial={{ scale: 1 }}
+        exit={{ x: x.get() > 0 ? 1000 : -1000, opacity: 0 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
       >
         {children}
-      </TinderCard>
+      </motion.div>
     );
   }
 );

@@ -1,15 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, DollarSign, User, Building2, Heart, X, Plus } from 'lucide-react';
+import { MapPin, DollarSign, User, Building2, Heart, X, Plus, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
 import BottomNav from '@/components/BottomNav';
 import MatchModal from '@/components/MatchModal';
+import TinderCardWrapper, { TinderCardRef } from '@/components/TinderCard';
 import { useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -27,21 +28,23 @@ const Swipe = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showMatch, setShowMatch] = useState(false);
   const [matchData, setMatchData] = useState(null);
+  const cardRefs = useRef<(TinderCardRef | null)[]>([]);
 
-  const handleSwipe = async (direction: 'like' | 'dislike') => {
+  const handleSwipe = async (direction: string) => {
     if (!targets || !targets[currentIndex] || !user) return;
 
     const target = targets[currentIndex];
+    const swipeDirection = direction === 'right' ? 'like' : 'dislike';
     
     try {
       await createSwipe.mutateAsync({
         target_id: target.id,
         target_type: user.role === 'seeker' ? 'vacancy' : 'user',
-        direction
+        direction: swipeDirection
       });
 
       // Симуляция мэтча (в реальности проверяется триггером в БД)
-      if (direction === 'like' && Math.random() > 0.7) {
+      if (swipeDirection === 'like' && Math.random() > 0.7) {
         setMatchData(target);
         setShowMatch(true);
       }
@@ -54,8 +57,19 @@ const Swipe = () => {
     }
   };
 
+  const handleButtonSwipe = (direction: 'like' | 'dislike') => {
+    const cardRef = cardRefs.current[currentIndex];
+    if (cardRef) {
+      cardRef.swipe(direction === 'like' ? 'right' : 'left');
+    }
+  };
+
   const handleCreateVacancy = () => {
     navigate('/create-vacancy');
+  };
+
+  const handleManageVacancies = () => {
+    navigate('/vacancy-management');
   };
 
   if (isLoading) {
@@ -87,13 +101,23 @@ const Swipe = () => {
             }
           </p>
           {user?.role === 'employer' && (
-            <Button 
-              onClick={handleCreateVacancy}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Plus className="mr-2" size={16} />
-              Создать вакансию
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                onClick={handleCreateVacancy}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Plus className="mr-2" size={16} />
+                Создать вакансию
+              </Button>
+              <Button 
+                onClick={handleManageVacancies}
+                variant="outline"
+                className="w-full"
+              >
+                <Settings className="mr-2" size={16} />
+                Управление вакансиями
+              </Button>
+            </div>
           )}
         </div>
         <BottomNav activeTab="swipe" />
@@ -117,156 +141,174 @@ const Swipe = () => {
             {targets.length - currentIndex} карточек осталось
           </p>
           {user?.role === 'employer' && (
-            <Button 
-              variant="outline" 
-              onClick={handleCreateVacancy}
-              className="mt-2"
-              size="sm"
-            >
-              <Plus className="mr-1" size={14} />
-              Создать вакансию
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button 
+                variant="outline" 
+                onClick={handleCreateVacancy}
+                size="sm"
+                className="flex-1"
+              >
+                <Plus className="mr-1" size={14} />
+                Создать вакансию
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleManageVacancies}
+                size="sm"
+                className="flex-1"
+              >
+                <Settings className="mr-1" size={14} />
+                Управление
+              </Button>
+            </div>
           )}
         </motion.div>
 
         <div className="relative h-[500px] mb-6">
-          <AnimatePresence>
-            <motion.div
-              key={currentTarget.id}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="absolute inset-0"
-            >
-              <Card className="h-full bg-white shadow-lg">
-                {isVacancy ? (
-                  // Карточка вакансии для соискателя
-                  <>
-                    <CardHeader className="text-center pb-4">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center">
-                          <Building2 className="text-white" size={24} />
-                        </div>
-                      </div>
-                      <CardTitle className="text-xl mb-2">{(currentTarget as Vacancy).title}</CardTitle>
-                      {(currentTarget as Vacancy).employer?.company && (
-                        <p className="text-gray-600">{(currentTarget as Vacancy).employer?.company}</p>
-                      )}
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-gray-700">{(currentTarget as Vacancy).description}</p>
-                      
-                      {((currentTarget as Vacancy).salary_min || (currentTarget as Vacancy).salary_max) && (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <DollarSign size={16} />
-                          <span className="font-medium">
-                            {(currentTarget as Vacancy).salary_min && (currentTarget as Vacancy).salary_max 
-                              ? `${(currentTarget as Vacancy).salary_min?.toLocaleString()} - ${(currentTarget as Vacancy).salary_max?.toLocaleString()} ₽`
-                              : (currentTarget as Vacancy).salary_min 
-                                ? `от ${(currentTarget as Vacancy).salary_min?.toLocaleString()} ₽`
-                                : `до ${(currentTarget as Vacancy).salary_max?.toLocaleString()} ₽`
-                            }
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin size={16} />
-                        <span>{currentTarget.city}</span>
-                      </div>
-
-                      {(currentTarget as Vacancy).skills_required && (currentTarget as Vacancy).skills_required.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Требуемые навыки:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {(currentTarget as Vacancy).skills_required.map((skill, index) => (
-                              <Badge key={index} variant="secondary">{skill}</Badge>
-                            ))}
+          {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
+            const actualIndex = currentIndex + index;
+            return (
+              <TinderCardWrapper
+                key={target.id}
+                ref={el => cardRefs.current[actualIndex] = el}
+                onSwipe={handleSwipe}
+                onCardLeftScreen={() => {
+                  if (actualIndex === currentIndex) {
+                    setCurrentIndex(prev => prev + 1);
+                  }
+                }}
+                preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
+              >
+                <Card className="h-full bg-white shadow-lg" style={{ zIndex: 10 - index }}>
+                  {isVacancy ? (
+                    // Карточка вакансии для соискателя
+                    <>
+                      <CardHeader className="text-center pb-4">
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center">
+                            <Building2 className="text-white" size={24} />
                           </div>
                         </div>
-                      )}
-
-                      {(currentTarget as Vacancy).team_lead_name && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={(currentTarget as Vacancy).team_lead_avatar} />
-                            <AvatarFallback>{(currentTarget as Vacancy).team_lead_name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">{(currentTarget as Vacancy).team_lead_name}</p>
-                            <p className="text-xs text-gray-500">Тимлид</p>
+                        <CardTitle className="text-xl mb-2">{(target as Vacancy).title}</CardTitle>
+                        {(target as Vacancy).employer?.company && (
+                          <p className="text-gray-600">{(target as Vacancy).employer?.company}</p>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-4 overflow-y-auto">
+                        <p className="text-gray-700">{(target as Vacancy).description}</p>
+                        
+                        {((target as Vacancy).salary_min || (target as Vacancy).salary_max) && (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <DollarSign size={16} />
+                            <span className="font-medium">
+                              {(target as Vacancy).salary_min && (target as Vacancy).salary_max 
+                                ? `${(target as Vacancy).salary_min?.toLocaleString()} - ${(target as Vacancy).salary_max?.toLocaleString()} ₽`
+                                : (target as Vacancy).salary_min 
+                                  ? `от ${(target as Vacancy).salary_min?.toLocaleString()} ₽`
+                                  : `до ${(target as Vacancy).salary_max?.toLocaleString()} ₽`
+                              }
+                            </span>
                           </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </>
-                ) : (
-                  // Карточка кандидата для работодателя
-                  <>
-                    <CardHeader className="text-center pb-4">
-                      <Avatar className="w-20 h-20 mx-auto mb-4">
-                        <AvatarImage src={(currentTarget as UserProfile).avatar_url} />
-                        <AvatarFallback>
-                          <User className="w-8 h-8" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <CardTitle className="text-xl">
-                        {(currentTarget as UserProfile).first_name} {(currentTarget as UserProfile).last_name}
-                      </CardTitle>
-                      {(currentTarget as UserProfile).username && (
-                        <p className="text-gray-500">@{(currentTarget as UserProfile).username}</p>
-                      )}
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {(currentTarget as UserProfile).city && (
+                        )}
+                        
                         <div className="flex items-center gap-2 text-gray-600">
                           <MapPin size={16} />
-                          <span>{(currentTarget as UserProfile).city}</span>
+                          <span>{target.city}</span>
                         </div>
-                      )}
 
-                      {(currentTarget as UserProfile).salary_expectation && (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <DollarSign size={16} />
-                          <span className="font-medium">от {(currentTarget as UserProfile).salary_expectation.toLocaleString()} ₽</span>
-                        </div>
-                      )}
-
-                      {(currentTarget as UserProfile).experience && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">Опыт работы:</p>
-                          <p className="text-gray-600">{(currentTarget as UserProfile).experience}</p>
-                        </div>
-                      )}
-
-                      {(currentTarget as UserProfile).achievement && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">Главное достижение:</p>
-                          <p className="text-gray-600">{(currentTarget as UserProfile).achievement}</p>
-                        </div>
-                      )}
-
-                      {(currentTarget as UserProfile).skills && (currentTarget as UserProfile).skills.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Навыки:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {(currentTarget as UserProfile).skills.map((skill, index) => (
-                              <Badge key={index} variant="secondary">{skill}</Badge>
-                            ))}
+                        {(target as Vacancy).skills_required && (target as Vacancy).skills_required.length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Требуемые навыки:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {(target as Vacancy).skills_required.map((skill, index) => (
+                                <Badge key={index} variant="secondary">{skill}</Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </>
-                )}
-              </Card>
-            </motion.div>
-          </AnimatePresence>
+                        )}
+
+                        {(target as Vacancy).team_lead_name && (
+                          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={(target as Vacancy).team_lead_avatar} />
+                              <AvatarFallback>{(target as Vacancy).team_lead_name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">{(target as Vacancy).team_lead_name}</p>
+                              <p className="text-xs text-gray-500">Тимлид</p>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </>
+                  ) : (
+                    // Карточка кандидата для работодателя
+                    <>
+                      <CardHeader className="text-center pb-4">
+                        <Avatar className="w-20 h-20 mx-auto mb-4">
+                          <AvatarImage src={(target as UserProfile).avatar_url} />
+                          <AvatarFallback>
+                            <User className="w-8 h-8" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <CardTitle className="text-xl">
+                          {(target as UserProfile).first_name} {(target as UserProfile).last_name}
+                        </CardTitle>
+                        {(target as UserProfile).username && (
+                          <p className="text-gray-500">@{(target as UserProfile).username}</p>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-4 overflow-y-auto">
+                        {(target as UserProfile).city && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <MapPin size={16} />
+                            <span>{(target as UserProfile).city}</span>
+                          </div>
+                        )}
+
+                        {(target as UserProfile).salary_expectation && (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <DollarSign size={16} />
+                            <span className="font-medium">от {(target as UserProfile).salary_expectation.toLocaleString()} ₽</span>
+                          </div>
+                        )}
+
+                        {(target as UserProfile).experience && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Опыт работы:</p>
+                            <p className="text-gray-600">{(target as UserProfile).experience}</p>
+                          </div>
+                        )}
+
+                        {(target as UserProfile).achievement && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Главное достижение:</p>
+                            <p className="text-gray-600">{(target as UserProfile).achievement}</p>
+                          </div>
+                        )}
+
+                        {(target as UserProfile).skills && (target as UserProfile).skills.length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Навыки:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {(target as UserProfile).skills.map((skill, index) => (
+                                <Badge key={index} variant="secondary">{skill}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </>
+                  )}
+                </Card>
+              </TinderCardWrapper>
+            );
+          })}
         </div>
 
         <div className="flex justify-center gap-6">
           <Button
-            onClick={() => handleSwipe('dislike')}
+            onClick={() => handleButtonSwipe('dislike')}
             variant="outline"
             size="lg"
             className="w-16 h-16 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300"
@@ -274,7 +316,7 @@ const Swipe = () => {
             <X className="text-red-500" size={24} />
           </Button>
           <Button
-            onClick={() => handleSwipe('like')}
+            onClick={() => handleButtonSwipe('like')}
             size="lg"
             className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
           >

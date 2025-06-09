@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import Swipe from "./pages/Swipe";
 import Matches from "./pages/Matches";
 import CreateVacancy from "./pages/CreateVacancy";
+import VacancyManagement from "./pages/VacancyManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App: React.FC = () => {
               <Route path="/swipe" element={<Swipe />} />
               <Route path="/matches" element={<Matches />} />
               <Route path="/create-vacancy" element={<CreateVacancy />} />
+              <Route path="/vacancy-management" element={<VacancyManagement />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

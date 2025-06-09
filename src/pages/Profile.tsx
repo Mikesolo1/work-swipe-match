@@ -47,8 +47,8 @@ const Profile = () => {
         achievement: user.achievement || '',
         salary_expectation: user.salary_expectation?.toString() || '',
         company: user.company || '',
-        resume_url: user.resume_url || '',
-        portfolio_url: user.portfolio_url || ''
+        resume_url: (user as any).resume_url || '',
+        portfolio_url: (user as any).portfolio_url || ''
       });
     }
   }, [user]);

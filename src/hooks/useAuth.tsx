@@ -1,6 +1,6 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, setUserContext } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
 type User = Tables<'users'>;
@@ -32,6 +32,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkUser = async (telegramId: number) => {
     try {
+      // Устанавливаем контекст пользователя
+      await setUserContext(telegramId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -53,6 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (telegramUser: any, role: 'seeker' | 'employer') => {
     try {
       setLoading(true);
+      
+      // Устанавливаем контекст пользователя
+      await setUserContext(telegramUser.id);
       
       // Создаем или обновляем пользователя
       const userData = {
@@ -97,6 +103,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       console.log('Updating profile with data:', profileData);
+      
+      // Устанавливаем контекст пользователя
+      await setUserContext(user.telegram_id);
       
       const { data, error } = await supabase
         .from('users')

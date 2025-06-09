@@ -151,6 +151,8 @@ export type Database = {
           first_name: string
           id: string
           last_name: string | null
+          portfolio_url: string | null
+          resume_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           salary_expectation: number | null
           skills: string[] | null
@@ -168,6 +170,8 @@ export type Database = {
           first_name: string
           id?: string
           last_name?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
           role: Database["public"]["Enums"]["user_role"]
           salary_expectation?: number | null
           skills?: string[] | null
@@ -185,6 +189,8 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           salary_expectation?: number | null
           skills?: string[] | null

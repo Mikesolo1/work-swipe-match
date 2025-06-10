@@ -32,19 +32,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkUser = async (telegramId: number) => {
     try {
-      // Устанавливаем контекст пользователя
-      await setUserContext(telegramId);
+      console.log('Checking user with telegram_id:', telegramId);
       
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('telegram_id', telegramId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error checking user:', error);
       } else if (data) {
+        console.log('User found:', data);
         setUser(data);
+      } else {
+        console.log('User not found');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -56,9 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (telegramUser: any, role: 'seeker' | 'employer') => {
     try {
       setLoading(true);
-      
-      // Устанавливаем контекст пользователя
-      await setUserContext(telegramUser.id);
+      console.log('Signing in user:', telegramUser, 'with role:', role);
       
       // Создаем или обновляем пользователя
       const userData = {
@@ -70,16 +70,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         role: role
       };
 
-      console.log('Creating/updating user with data:', userData);
+      console.log('Upserting user with data:', userData);
 
       const { data, error } = await supabase
         .from('users')
-        .upsert(userData, { onConflict: 'telegram_id' })
+        .upsert(userData, { 
+          onConflict: 'telegram_id',
+          ignoreDuplicates: false 
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating user:', error);
+        console.error('Error creating/updating user:', error);
         throw error;
       }
 
@@ -98,19 +101,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (profileData: Partial<User>) => {
     if (!user) {
       console.error('No user found for profile update');
-      return;
+      throw new Error('No user found');
     }
 
     try {
-      console.log('Updating profile with data:', profileData);
-      
-      // Устанавливаем контекст пользователя
-      await setUserContext(user.telegram_id);
+      console.log('Updating profile for user:', user.id, 'with data:', profileData);
       
       const { data, error } = await supabase
         .from('users')
         .update(profileData)
-        .eq('telegram_id', user.telegram_id)
+        .eq('id', user.id)
         .select()
         .single();
 

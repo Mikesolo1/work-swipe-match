@@ -16,7 +16,12 @@ export const useSwipeTargets = () => {
   return useQuery({
     queryKey: ['swipe-targets', user?.id, user?.role],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) {
+        console.log('No user found for swipe targets');
+        return [];
+      }
+
+      console.log('Fetching swipe targets for user:', user.id, 'role:', user.role);
 
       if (user.role === 'seeker') {
         // Получаем вакансии для соискателя, исключая уже просмотренные
@@ -31,21 +36,33 @@ export const useSwipeTargets = () => {
         }
 
         const swipedIds = swipedVacancies?.map(s => s.target_id) || [];
+        console.log('Already swiped vacancy IDs:', swipedIds);
 
-        const { data: vacancies, error } = await supabase
+        let query = supabase
           .from('vacancies')
           .select(`
             *,
             employer:users!vacancies_employer_id_fkey(*)
-          `)
-          .not('employer_id', 'eq', user.id)
-          .not('id', 'in', `(${swipedIds.length > 0 ? swipedIds.join(',') : 'null'})`);
+          `);
+
+        // Исключаем вакансии, где пользователь является работодателем
+        if (user.id) {
+          query = query.not('employer_id', 'eq', user.id);
+        }
+
+        // Исключаем уже просмотренные вакансии
+        if (swipedIds.length > 0) {
+          query = query.not('id', 'in', `(${swipedIds.join(',')})`);
+        }
+
+        const { data: vacancies, error } = await query;
 
         if (error) {
           console.error('Error fetching vacancies:', error);
           throw error;
         }
 
+        console.log('Found vacancies:', vacancies?.length || 0);
         return vacancies as Vacancy[];
       } else {
         // Получаем профили соискателей для работодателя, исключая уже просмотренные
@@ -60,19 +77,27 @@ export const useSwipeTargets = () => {
         }
 
         const swipedIds = swipedUsers?.map(s => s.target_id) || [];
+        console.log('Already swiped user IDs:', swipedIds);
 
-        const { data: seekers, error } = await supabase
+        let query = supabase
           .from('users')
           .select('*')
           .eq('role', 'seeker')
-          .not('id', 'eq', user.id)
-          .not('id', 'in', `(${swipedIds.length > 0 ? swipedIds.join(',') : 'null'})`);
+          .not('id', 'eq', user.id);
+
+        // Исключаем уже просмотренных пользователей
+        if (swipedIds.length > 0) {
+          query = query.not('id', 'in', `(${swipedIds.join(',')})`);
+        }
+
+        const { data: seekers, error } = await query;
 
         if (error) {
           console.error('Error fetching seekers:', error);
           throw error;
         }
 
+        console.log('Found seekers:', seekers?.length || 0);
         return seekers as UserProfile[];
       }
     },
@@ -92,6 +117,8 @@ export const useSwipe = () => {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Creating swipe:', swipeData, 'for user:', user.id);
+
       const { data, error } = await supabase
         .from('swipes')
         .insert({
@@ -108,10 +135,13 @@ export const useSwipe = () => {
         throw error;
       }
 
+      console.log('Swipe created successfully:', data);
       return data;
     },
     onSuccess: () => {
+      console.log('Swipe successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['swipe-targets'] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
     },
   });
 

@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data, error } = await supabase
         .from('users')
         .update(profileData)
-        .eq('id', user.id)
+        .eq('telegram_id', user.telegram_id)
         .select()
         .single();
 

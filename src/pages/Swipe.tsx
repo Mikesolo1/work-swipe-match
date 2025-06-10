@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, DollarSign, User, Building2, Heart, X, Plus, Settings } from 'lucide-react';
+import { MapPin, DollarSign, User, Building2, Heart, X, Plus, Settings, Link, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
@@ -129,15 +129,15 @@ const Swipe = () => {
   const isVacancy = user?.role === 'seeker';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
-      <div className="p-4 max-w-md mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20 overflow-hidden">
+      <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
+          className="text-center mb-4 flex-shrink-0"
         >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Мэтчворк</h1>
-          <p className="text-gray-600">
+          <h1 className="text-xl font-bold text-gray-800 mb-1">Мэтчворк</h1>
+          <p className="text-sm text-gray-600">
             {targets.length - currentIndex} карточек осталось
           </p>
           {user?.role === 'employer' && (
@@ -146,25 +146,25 @@ const Swipe = () => {
                 variant="outline" 
                 onClick={handleCreateVacancy}
                 size="sm"
-                className="flex-1"
+                className="flex-1 text-xs"
               >
-                <Plus className="mr-1" size={14} />
-                Создать вакансию
+                <Plus className="mr-1" size={12} />
+                Создать
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleManageVacancies}
                 size="sm"
-                className="flex-1"
+                className="flex-1 text-xs"
               >
-                <Settings className="mr-1" size={14} />
+                <Settings className="mr-1" size={12} />
                 Управление
               </Button>
             </div>
           )}
         </motion.div>
 
-        <div className="relative h-[500px] mb-6">
+        <div className="relative flex-1 mb-4">
           {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
             const actualIndex = currentIndex + index;
             return (
@@ -179,28 +179,28 @@ const Swipe = () => {
                 }}
                 preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
               >
-                <Card className="h-full bg-white shadow-lg" style={{ zIndex: 10 - index }}>
+                <Card className="h-full bg-white shadow-lg overflow-hidden" style={{ zIndex: 10 - index }}>
                   {isVacancy ? (
-                    // Карточка вакансии для соискателя
+                    // Карточка вакансии для соискателя - компактная версия
                     <>
-                      <CardHeader className="text-center pb-4">
-                        <div className="flex items-center justify-center mb-4">
-                          <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center">
-                            <Building2 className="text-white" size={24} />
+                      <CardHeader className="text-center pb-3">
+                        <div className="flex items-center justify-center mb-3">
+                          <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-12 h-12 rounded-full flex items-center justify-center">
+                            <Building2 className="text-white" size={20} />
                           </div>
                         </div>
-                        <CardTitle className="text-xl mb-2">{(target as Vacancy).title}</CardTitle>
+                        <CardTitle className="text-lg mb-1 leading-tight">{(target as Vacancy).title}</CardTitle>
                         {(target as Vacancy).employer?.company && (
-                          <p className="text-gray-600">{(target as Vacancy).employer?.company}</p>
+                          <p className="text-sm text-gray-600">{(target as Vacancy).employer?.company}</p>
                         )}
                       </CardHeader>
-                      <CardContent className="space-y-4 overflow-y-auto">
-                        <p className="text-gray-700">{(target as Vacancy).description}</p>
+                      <CardContent className="space-y-3 overflow-y-auto">
+                        <p className="text-sm text-gray-700 line-clamp-3">{(target as Vacancy).description}</p>
                         
                         {((target as Vacancy).salary_min || (target as Vacancy).salary_max) && (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <DollarSign size={16} />
-                            <span className="font-medium">
+                          <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded">
+                            <DollarSign size={14} />
+                            <span className="font-medium text-sm">
                               {(target as Vacancy).salary_min && (target as Vacancy).salary_max 
                                 ? `${(target as Vacancy).salary_min?.toLocaleString()} - ${(target as Vacancy).salary_max?.toLocaleString()} ₽`
                                 : (target as Vacancy).salary_min 
@@ -212,29 +212,32 @@ const Swipe = () => {
                         )}
                         
                         <div className="flex items-center gap-2 text-gray-600">
-                          <MapPin size={16} />
-                          <span>{target.city}</span>
+                          <MapPin size={14} />
+                          <span className="text-sm">{target.city}</span>
                         </div>
 
                         {(target as Vacancy).skills_required && (target as Vacancy).skills_required.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-gray-700 mb-2">Требуемые навыки:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(target as Vacancy).skills_required.map((skill, index) => (
-                                <Badge key={index} variant="secondary">{skill}</Badge>
+                            <p className="text-xs font-medium text-gray-700 mb-2">Требуемые навыки:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {(target as Vacancy).skills_required.slice(0, 6).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs px-2 py-1">{skill}</Badge>
                               ))}
+                              {(target as Vacancy).skills_required.length > 6 && (
+                                <Badge variant="secondary" className="text-xs px-2 py-1">+{(target as Vacancy).skills_required.length - 6}</Badge>
+                              )}
                             </div>
                           </div>
                         )}
 
                         {(target as Vacancy).team_lead_name && (
-                          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <Avatar className="w-10 h-10">
+                          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                            <Avatar className="w-8 h-8">
                               <AvatarImage src={(target as Vacancy).team_lead_avatar} />
-                              <AvatarFallback>{(target as Vacancy).team_lead_name?.[0]}</AvatarFallback>
+                              <AvatarFallback className="text-xs">{(target as Vacancy).team_lead_name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-sm font-medium">{(target as Vacancy).team_lead_name}</p>
+                              <p className="text-xs font-medium">{(target as Vacancy).team_lead_name}</p>
                               <p className="text-xs text-gray-500">Тимлид</p>
                             </div>
                           </div>
@@ -242,59 +245,82 @@ const Swipe = () => {
                       </CardContent>
                     </>
                   ) : (
-                    // Карточка кандидата для работодателя
+                    // Карточка кандидата для работодателя - компактная версия
                     <>
-                      <CardHeader className="text-center pb-4">
-                        <Avatar className="w-20 h-20 mx-auto mb-4">
+                      <CardHeader className="text-center pb-3">
+                        <Avatar className="w-16 h-16 mx-auto mb-3">
                           <AvatarImage src={(target as UserProfile).avatar_url} />
                           <AvatarFallback>
-                            <User className="w-8 h-8" />
+                            <User className="w-6 h-6" />
                           </AvatarFallback>
                         </Avatar>
-                        <CardTitle className="text-xl">
+                        <CardTitle className="text-lg leading-tight">
                           {(target as UserProfile).first_name} {(target as UserProfile).last_name}
                         </CardTitle>
                         {(target as UserProfile).username && (
-                          <p className="text-gray-500">@{(target as UserProfile).username}</p>
+                          <p className="text-sm text-gray-500">@{(target as UserProfile).username}</p>
                         )}
                       </CardHeader>
-                      <CardContent className="space-y-4 overflow-y-auto">
-                        {(target as UserProfile).city && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <MapPin size={16} />
-                            <span>{(target as UserProfile).city}</span>
-                          </div>
-                        )}
-
-                        {(target as UserProfile).salary_expectation && (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <DollarSign size={16} />
-                            <span className="font-medium">от {(target as UserProfile).salary_expectation.toLocaleString()} ₽</span>
-                          </div>
-                        )}
+                      <CardContent className="space-y-3 overflow-y-auto">
+                        <div className="flex items-center justify-between text-sm">
+                          {(target as UserProfile).city && (
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <MapPin size={12} />
+                              <span>{(target as UserProfile).city}</span>
+                            </div>
+                          )}
+                          {(target as UserProfile).salary_expectation && (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <DollarSign size={12} />
+                              <span className="font-medium">от {(target as UserProfile).salary_expectation.toLocaleString()} ₽</span>
+                            </div>
+                          )}
+                        </div>
 
                         {(target as UserProfile).experience && (
                           <div>
-                            <p className="text-sm font-medium text-gray-700 mb-1">Опыт работы:</p>
-                            <p className="text-gray-600">{(target as UserProfile).experience}</p>
+                            <p className="text-xs font-medium text-gray-700 mb-1">Опыт работы:</p>
+                            <p className="text-sm text-gray-600 line-clamp-2">{(target as UserProfile).experience}</p>
                           </div>
                         )}
 
                         {(target as UserProfile).achievement && (
                           <div>
-                            <p className="text-sm font-medium text-gray-700 mb-1">Главное достижение:</p>
-                            <p className="text-gray-600">{(target as UserProfile).achievement}</p>
+                            <p className="text-xs font-medium text-gray-700 mb-1">Главное достижение:</p>
+                            <p className="text-sm text-gray-600 line-clamp-2">{(target as UserProfile).achievement}</p>
                           </div>
                         )}
 
                         {(target as UserProfile).skills && (target as UserProfile).skills.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-gray-700 mb-2">Навыки:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(target as UserProfile).skills.map((skill, index) => (
-                                <Badge key={index} variant="secondary">{skill}</Badge>
+                            <p className="text-xs font-medium text-gray-700 mb-2">Навыки:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {(target as UserProfile).skills.slice(0, 6).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs px-2 py-1">{skill}</Badge>
                               ))}
+                              {(target as UserProfile).skills.length > 6 && (
+                                <Badge variant="secondary" className="text-xs px-2 py-1">+{(target as UserProfile).skills.length - 6}</Badge>
+                              )}
                             </div>
+                          </div>
+                        )}
+
+                        {((target as UserProfile).resume_url || (target as UserProfile).portfolio_url) && (
+                          <div className="flex gap-2">
+                            {(target as UserProfile).resume_url && (
+                              <a href={(target as UserProfile).resume_url} target="_blank" rel="noopener noreferrer" 
+                                 className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                                <FileText size={12} />
+                                Резюме
+                              </a>
+                            )}
+                            {(target as UserProfile).portfolio_url && (
+                              <a href={(target as UserProfile).portfolio_url} target="_blank" rel="noopener noreferrer"
+                                 className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                                <Link size={12} />
+                                Портфолио
+                              </a>
+                            )}
                           </div>
                         )}
                       </CardContent>
@@ -306,21 +332,21 @@ const Swipe = () => {
           })}
         </div>
 
-        <div className="flex justify-center gap-6">
+        <div className="flex justify-center gap-6 flex-shrink-0">
           <Button
             onClick={() => handleButtonSwipe('dislike')}
             variant="outline"
             size="lg"
-            className="w-16 h-16 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300"
+            className="w-14 h-14 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300"
           >
-            <X className="text-red-500" size={24} />
+            <X className="text-red-500" size={20} />
           </Button>
           <Button
             onClick={() => handleButtonSwipe('like')}
             size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+            className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
           >
-            <Heart className="text-white" size={24} />
+            <Heart className="text-white" size={20} />
           </Button>
         </div>
       </div>

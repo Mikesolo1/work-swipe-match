@@ -37,12 +37,17 @@ const TinderCardWrapper = forwardRef<TinderCardRef, TinderCardWrapperProps>(
 
       if (Math.abs(offset) > 100 || Math.abs(velocity) > 500) {
         const direction = offset > 0 ? 'right' : 'left';
-        const exitX = direction === 'right' ? 1000 : -1000;
-        x.set(exitX);
-        onSwipe(direction);
-        setTimeout(() => {
-          onCardLeftScreen?.();
-        }, 300);
+        if (!preventSwipe.includes(direction)) {
+          const exitX = direction === 'right' ? 1000 : -1000;
+          x.set(exitX);
+          onSwipe(direction);
+          setTimeout(() => {
+            onCardLeftScreen?.();
+          }, 300);
+        } else {
+          x.set(0);
+          y.set(0);
+        }
       } else {
         x.set(0);
         y.set(0);
@@ -63,7 +68,7 @@ const TinderCardWrapper = forwardRef<TinderCardRef, TinderCardWrapperProps>(
         drag={!isDragDisabled}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         onDragEnd={handleDragEnd}
-        whileDrag={{ scale: 1.05 }}
+        whileDrag={{ scale: 1.02 }}
         initial={{ scale: 1 }}
         exit={{ x: x.get() > 0 ? 1000 : -1000, opacity: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}

@@ -395,5 +395,3 @@ const Swipe = () => {
 };
 
 export default Swipe;
-
-</edits_to_apply>

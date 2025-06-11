@@ -276,6 +276,21 @@ class SupabaseService {
 
     return () => supabase.removeChannel(channel);
   }
+
+  // Health check
+  async healthCheck(): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .select('id')
+        .limit(1);
+      
+      return !error;
+    } catch (error) {
+      console.error('Health check failed:', error);
+      return false;
+    }
+  }
 }
 
 export const supabaseService = new SupabaseService();

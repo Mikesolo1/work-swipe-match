@@ -1,7 +1,6 @@
 
 import React, { useRef } from 'react';
 import { Card } from "@/components/ui/card";
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSwipeOptimized } from '@/hooks/useSwipeOptimized';
@@ -13,6 +12,9 @@ import SwipeHeader from '@/components/SwipeHeader';
 import SwipeCardContent from '@/components/SwipeCardContent';
 import SwipeActions from '@/components/SwipeActions';
 import NoMoreCards from '@/components/NoMoreCards';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import EmptyState from '@/components/EmptyState';
+import NetworkStatus from '@/components/NetworkStatus';
 
 const Swipe = () => {
   const { user } = useAuth();
@@ -64,16 +66,7 @@ const Swipe = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-2xl flex items-center justify-center matchwork-pulse">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
-          </div>
-          <p className="matchwork-text font-medium">Загружаем карточки...</p>
-        </motion.div>
+        <LoadingSpinner size="lg" text="Загружаем карточки..." />
       </div>
     );
   }
@@ -81,19 +74,13 @@ const Swipe = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
-        <div className="text-center p-6 max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
-            <X className="text-red-500" size={24} />
-          </div>
-          <h2 className="matchwork-subheading text-red-600 mb-2">Ошибка загрузки</h2>
-          <p className="matchwork-text">{error}</p>
-          <button 
-            onClick={handleRetry}
-            className="mt-4 matchwork-button-primary"
-          >
-            Попробовать снова
-          </button>
-        </div>
+        <EmptyState
+          icon="❌"
+          title="Ошибка загрузки"
+          description={error}
+          actionText="Попробовать снова"
+          onAction={handleRetry}
+        />
       </div>
     );
   }
@@ -112,54 +99,57 @@ const Swipe = () => {
   }
 
   return (
-    <div className="min-h-screen bg-matchwork-background pb-20 overflow-hidden">
-      <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
-        <SwipeHeader 
-          remainingCount={remainingCount}
-          userRole={user?.role}
-          onCreateVacancy={handleCreateVacancy}
-          onManageVacancies={handleManageVacancies}
-        />
+    <>
+      <NetworkStatus />
+      <div className="min-h-screen bg-matchwork-background pb-20 overflow-hidden">
+        <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
+          <SwipeHeader 
+            remainingCount={remainingCount}
+            userRole={user?.role}
+            onCreateVacancy={handleCreateVacancy}
+            onManageVacancies={handleManageVacancies}
+          />
 
-        {/* Cards Stack */}
-        <div className="relative flex-1 mb-6">
-          <AnimatePresence>
-            {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
-              const actualIndex = currentIndex + index;
-              return (
-                <TinderCardWrapper
-                  key={target.id}
-                  ref={el => cardRefs.current[actualIndex] = el}
-                  onSwipe={handleCardSwipe}
-                  onCardLeftScreen={() => {
-                    // Card has left screen, no additional action needed
-                    // as the swipe is already handled in handleCardSwipe
-                  }}
-                  preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
-                >
-                  <Card className="h-full matchwork-card overflow-hidden" style={{ zIndex: 10 - index }}>
-                    <SwipeCardContent target={target} isVacancy={isVacancy} />
-                  </Card>
-                </TinderCardWrapper>
-              );
-            })}
-          </AnimatePresence>
+          {/* Cards Stack */}
+          <div className="relative flex-1 mb-6">
+            <AnimatePresence>
+              {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
+                const actualIndex = currentIndex + index;
+                return (
+                  <TinderCardWrapper
+                    key={target.id}
+                    ref={el => cardRefs.current[actualIndex] = el}
+                    onSwipe={handleCardSwipe}
+                    onCardLeftScreen={() => {
+                      // Card has left screen, no additional action needed
+                      // as the swipe is already handled in handleCardSwipe
+                    }}
+                    preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
+                  >
+                    <Card className="h-full matchwork-card overflow-hidden" style={{ zIndex: 10 - index }}>
+                      <SwipeCardContent target={target} isVacancy={isVacancy} />
+                    </Card>
+                  </TinderCardWrapper>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          <SwipeActions 
+            onLike={() => handleButtonSwipe('like')}
+            onDislike={() => handleButtonSwipe('dislike')}
+          />
         </div>
 
-        <SwipeActions 
-          onLike={() => handleButtonSwipe('like')}
-          onDislike={() => handleButtonSwipe('dislike')}
+        <BottomNav activeTab="swipe" />
+        
+        <MatchModal 
+          isOpen={showMatchModal}
+          matchData={matchData}
+          onClose={closeMatchModal}
         />
       </div>
-
-      <BottomNav activeTab="swipe" />
-      
-      <MatchModal 
-        isOpen={showMatchModal}
-        matchData={matchData}
-        onClose={closeMatchModal}
-      />
-    </div>
+    </>
   );
 };
 

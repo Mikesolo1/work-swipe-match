@@ -21,38 +21,34 @@ const SwipeHeader: React.FC<SwipeHeaderProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="text-center mb-4 flex-shrink-0"
+      className="text-center mb-6 space-y-4"
     >
-      <div className="flex items-center justify-center gap-2 mb-2">
-        <div className="matchwork-gradient-primary w-8 h-8 rounded-lg flex items-center justify-center">
-          <Heart className="text-white" size={16} />
+      <div className="flex items-center justify-center gap-3">
+        <div className="matchwork-gradient-primary w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
+          <Heart className="text-white" size={18} />
         </div>
-        <h1 className="matchwork-heading text-xl">Matchwork</h1>
+        <h1 className="matchwork-heading text-2xl">Matchwork</h1>
       </div>
       
-      <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-3">
-        <Sparkles size={14} />
-        <span>{remainingCount} карточек осталось</span>
+      <div className="flex items-center justify-center gap-2 matchwork-text-muted">
+        <Sparkles size={16} className="text-matchwork-accent" />
+        <span className="font-medium">{remainingCount} карточек осталось</span>
       </div>
 
       {userRole === 'employer' && (
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button 
-            variant="outline" 
             onClick={onCreateVacancy}
-            size="sm"
-            className="flex-1 text-xs matchwork-button-secondary"
+            className="flex-1 matchwork-button-secondary text-sm"
           >
-            <Plus className="mr-1" size={12} />
+            <Plus className="mr-2" size={16} />
             Создать
           </Button>
           <Button 
-            variant="outline" 
             onClick={onManageVacancies}
-            size="sm"
-            className="flex-1 text-xs matchwork-button-secondary"
+            className="flex-1 matchwork-button-secondary text-sm"
           >
-            <Settings className="mr-1" size={12} />
+            <Settings className="mr-2" size={16} />
             Управление
           </Button>
         </div>

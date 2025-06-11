@@ -20,33 +20,36 @@ const NoMoreCards: React.FC<NoMoreCardsProps> = ({
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        className="text-6xl mb-4 matchwork-float"
+        className="text-6xl mb-6 matchwork-float"
       >
         🎉
       </motion.div>
-      <h2 className="matchwork-subheading mb-2">
+      
+      <h2 className="matchwork-subheading mb-3">
         Пока всё!
       </h2>
-      <p className="matchwork-text mb-6">
+      
+      <p className="matchwork-text mb-8 text-balance">
         {userRole === 'employer' 
           ? 'Вы просмотрели всех доступных кандидатов. Скоро появятся новые!'
           : 'Вы просмотрели все доступные вакансии. Скоро появятся новые!'
         }
       </p>
+      
       {userRole === 'employer' && (
         <div className="space-y-3">
           <Button 
             onClick={onCreateVacancy}
             className="w-full matchwork-button-primary"
           >
-            <Plus className="mr-2" size={16} />
+            <Plus className="mr-2" size={18} />
             Создать вакансию
           </Button>
           <Button 
             onClick={onManageVacancies}
             className="w-full matchwork-button-secondary"
           >
-            <Settings className="mr-2" size={16} />
+            <Settings className="mr-2" size={18} />
             Управление вакансиями
           </Button>
         </div>

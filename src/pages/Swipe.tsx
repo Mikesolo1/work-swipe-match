@@ -87,16 +87,16 @@ const Swipe = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-2xl flex items-center justify-center matchwork-pulse">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
           </div>
-          <p className="text-slate-600 font-medium">Загружаем карточки...</p>
+          <p className="matchwork-text font-medium">Загружаем карточки...</p>
         </motion.div>
       </div>
     );
@@ -104,13 +104,13 @@ const Swipe = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
         <div className="text-center p-6 max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
             <X className="text-red-500" size={24} />
           </div>
-          <h2 className="text-xl font-bold text-red-600 mb-2">Ошибка загрузки</h2>
-          <p className="text-slate-600">{error.message}</p>
+          <h2 className="matchwork-subheading text-red-600 mb-2">Ошибка загрузки</h2>
+          <p className="matchwork-text">{error.message}</p>
         </div>
       </div>
     );
@@ -118,7 +118,7 @@ const Swipe = () => {
 
   if (!targets || targets.length === 0 || currentIndex >= targets.length) {
     return (
-      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center pb-20">
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center pb-20">
         <NoMoreCards 
           userRole={user?.role}
           onCreateVacancy={handleCreateVacancy}
@@ -133,7 +133,7 @@ const Swipe = () => {
   const isVacancy = user?.role === 'seeker';
 
   return (
-    <div className="min-h-screen matchwork-gradient-bg pb-20 overflow-hidden">
+    <div className="min-h-screen bg-matchwork-background pb-20 overflow-hidden">
       <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
         <SwipeHeader 
           remainingCount={targets.length - currentIndex}
@@ -143,7 +143,7 @@ const Swipe = () => {
         />
 
         {/* Cards Stack */}
-        <div className="relative flex-1 mb-4">
+        <div className="relative flex-1 mb-6">
           <AnimatePresence>
             {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
               const actualIndex = currentIndex + index;

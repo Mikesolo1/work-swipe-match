@@ -34,40 +34,40 @@ const Matches = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-2xl flex items-center justify-center matchwork-pulse">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
           </div>
-          <p className="text-slate-600 font-medium">Загружаем мэтчи...</p>
+          <p className="matchwork-text font-medium">Загружаем мэтчи...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen matchwork-gradient-bg pb-20">
+    <div className="min-h-screen bg-matchwork-background pb-20">
       <div className="p-4 max-w-md mx-auto">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
+          className="text-center mb-6 space-y-4"
         >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="matchwork-gradient-secondary w-8 h-8 rounded-lg flex items-center justify-center">
-              <Heart className="text-white" size={16} />
+          <div className="flex items-center justify-center gap-3">
+            <div className="matchwork-gradient-secondary w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
+              <Heart className="text-white" size={18} />
             </div>
             <h1 className="matchwork-heading text-2xl">Мэтчи</h1>
           </div>
           
-          <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
-            <Sparkles size={14} />
-            <span>{matches?.length || 0} взаимных интересов</span>
+          <div className="flex items-center justify-center gap-2 matchwork-text-muted">
+            <Sparkles size={16} className="text-matchwork-accent" />
+            <span className="font-medium">{matches?.length || 0} взаимных интересов</span>
           </div>
         </motion.div>
 
@@ -77,13 +77,13 @@ const Matches = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-12"
           >
-            <div className="w-20 h-20 mx-auto mb-6 bg-slate-100 rounded-2xl flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-6 bg-slate-100 rounded-3xl flex items-center justify-center">
               <span className="text-4xl">💔</span>
             </div>
-            <h3 className="matchwork-subheading mb-2">
+            <h3 className="matchwork-subheading mb-3">
               Пока нет мэтчей
             </h3>
-            <p className="matchwork-text">
+            <p className="matchwork-text text-balance">
               Продолжайте свайпать, чтобы найти идеальные совпадения!
             </p>
           </motion.div>
@@ -108,44 +108,44 @@ const Matches = () => {
                   <Card className={`matchwork-card hover:shadow-xl transition-all duration-300 ${isExpired ? 'opacity-60' : ''}`}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
-                        <Avatar className="w-16 h-16 ring-2 ring-indigo-100">
+                        <Avatar className="w-16 h-16 ring-2 ring-matchwork-primary/20">
                           <AvatarImage src={otherUser?.avatar_url} />
-                          <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                          <AvatarFallback className="bg-matchwork-primary/10 text-matchwork-primary">
                             {otherUser?.first_name?.[0] || <User className="w-6 h-6" />}
                           </AvatarFallback>
                         </Avatar>
                         
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-slate-800">
+                          <h3 className="font-bold text-lg text-matchwork-text">
                             {otherUser?.first_name} {otherUser?.last_name}
                           </h3>
                           
                           {user?.role === 'seeker' && otherUser?.company && (
-                            <p className="text-slate-600 text-sm font-medium">
+                            <p className="matchwork-text-secondary text-sm font-medium">
                               {otherUser.company}
                             </p>
                           )}
                           
                           {vacancy && (
-                            <p className="text-indigo-600 text-sm font-semibold">
+                            <p className="text-matchwork-primary text-sm font-semibold">
                               Вакансия: {vacancy.title}
                             </p>
                           )}
                           
                           {otherUser?.city && (
-                            <p className="text-slate-500 text-sm">
+                            <p className="matchwork-text-muted text-sm">
                               {otherUser.city}
                             </p>
                           )}
                           
                           <div className="mt-2 flex items-center gap-1">
-                            <Clock size={12} />
+                            <Clock size={12} className="text-matchwork-text-muted" />
                             {isExpired ? (
                               <p className="text-red-500 text-xs font-medium">
                                 Время для связи истекло
                               </p>
                             ) : (
-                              <p className="text-green-600 text-xs font-medium">
+                              <p className="text-matchwork-success text-xs font-medium">
                                 Осталось: {hoursLeft}ч {minutesLeft}м
                               </p>
                             )}

@@ -10,21 +10,21 @@ interface SwipeActionsProps {
 
 const SwipeActions: React.FC<SwipeActionsProps> = ({ onLike, onDislike }) => {
   return (
-    <div className="flex justify-center gap-6 flex-shrink-0">
+    <div className="flex justify-center gap-8 py-4">
       <Button
         onClick={onDislike}
-        variant="outline"
         size="lg"
-        className="w-14 h-14 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300 transition-all"
+        className="w-16 h-16 rounded-full bg-white border-2 border-red-200 hover:bg-red-50 hover:border-red-300 hover:scale-110 transition-all shadow-lg"
       >
-        <X className="text-red-500" size={20} />
+        <X className="text-red-500" size={24} />
       </Button>
+      
       <Button
         onClick={onLike}
         size="lg"
-        className="w-14 h-14 rounded-full matchwork-gradient-secondary hover:scale-110 transition-transform matchwork-pulse"
+        className="w-16 h-16 rounded-full matchwork-gradient-primary hover:scale-110 transition-transform matchwork-pulse shadow-xl"
       >
-        <Heart className="text-white" size={20} />
+        <Heart className="text-white" size={24} />
       </Button>
     </div>
   );

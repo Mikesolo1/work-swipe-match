@@ -53,20 +53,9 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				},
 				// Matchwork brand colors
 				matchwork: {
 					primary: 'rgb(var(--matchwork-primary))',
-					'primary-light': 'rgb(var(--matchwork-primary-light))',
 					secondary: 'rgb(var(--matchwork-secondary))',
 					accent: 'rgb(var(--matchwork-accent))',
 					success: 'rgb(var(--matchwork-success))',
@@ -74,7 +63,9 @@ export default {
 					background: 'rgb(var(--matchwork-background))',
 					surface: 'rgb(var(--matchwork-surface))',
 					text: 'rgb(var(--matchwork-text))',
-					'text-secondary': 'rgb(var(--matchwork-text-secondary))'
+					'text-secondary': 'rgb(var(--matchwork-text-secondary))',
+					'text-muted': 'rgb(var(--matchwork-text-muted))',
+					border: 'rgb(var(--matchwork-border))'
 				}
 			},
 			borderRadius: {

@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -65,7 +64,7 @@ const Swipe = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
         <LoadingSpinner size="lg" text="Загружаем карточки..." />
       </div>
     );
@@ -73,7 +72,7 @@ const Swipe = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
         <EmptyState
           icon="❌"
           title="Ошибка загрузки"
@@ -87,7 +86,7 @@ const Swipe = () => {
 
   if (!hasMore) {
     return (
-      <div className="min-h-screen bg-matchwork-background flex items-center justify-center pb-20">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center pb-20">
         <NoMoreCards 
           userRole={user?.role}
           onCreateVacancy={handleCreateVacancy}
@@ -101,7 +100,7 @@ const Swipe = () => {
   return (
     <>
       <NetworkStatus />
-      <div className="min-h-screen bg-matchwork-background pb-20 overflow-hidden">
+      <div className="min-h-screen matchwork-gradient-bg pb-20 overflow-hidden">
         <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
           <SwipeHeader 
             remainingCount={remainingCount}

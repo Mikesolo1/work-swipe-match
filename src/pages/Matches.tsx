@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Heart, User, Building2 } from 'lucide-react';
+import { MessageCircle, Heart, User, Building2, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMatches } from '@/hooks/useMatches';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +21,6 @@ const Matches = () => {
   const getMatchInfo = (match: any) => {
     if (!user) return null;
 
-    // Определяем, кто является другой стороной мэтча
     const otherParticipant = match.participant_a === user.id 
       ? match.participant_b_user 
       : match.participant_a_user;
@@ -35,27 +34,41 @@ const Matches = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+          </div>
+          <p className="text-slate-600 font-medium">Загружаем мэтчи...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
+    <div className="min-h-screen matchwork-gradient-bg pb-20">
       <div className="p-4 max-w-md mx-auto">
+        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-            <Heart className="text-red-500" size={24} />
-            Мэтчи
-          </h1>
-          <p className="text-gray-600">
-            {matches?.length || 0} взаимных интересов
-          </p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="matchwork-gradient-secondary w-8 h-8 rounded-lg flex items-center justify-center">
+              <Heart className="text-white" size={16} />
+            </div>
+            <h1 className="matchwork-heading text-2xl">Мэтчи</h1>
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <Sparkles size={14} />
+            <span>{matches?.length || 0} взаимных интересов</span>
+          </div>
         </motion.div>
 
         {!matches || matches.length === 0 ? (
@@ -64,11 +77,13 @@ const Matches = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-12"
           >
-            <div className="text-6xl mb-4">💔</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <div className="w-20 h-20 mx-auto mb-6 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <span className="text-4xl">💔</span>
+            </div>
+            <h3 className="matchwork-subheading mb-2">
               Пока нет мэтчей
             </h3>
-            <p className="text-gray-500">
+            <p className="matchwork-text">
               Продолжайте свайпать, чтобы найти идеальные совпадения!
             </p>
           </motion.div>
@@ -90,46 +105,47 @@ const Matches = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className={`hover:shadow-lg transition-all duration-300 ${isExpired ? 'opacity-60' : ''}`}>
+                  <Card className={`matchwork-card hover:shadow-xl transition-all duration-300 ${isExpired ? 'opacity-60' : ''}`}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
-                        <Avatar className="w-16 h-16">
+                        <Avatar className="w-16 h-16 ring-2 ring-indigo-100">
                           <AvatarImage src={otherUser?.avatar_url} />
-                          <AvatarFallback>
+                          <AvatarFallback className="bg-indigo-100 text-indigo-600">
                             {otherUser?.first_name?.[0] || <User className="w-6 h-6" />}
                           </AvatarFallback>
                         </Avatar>
                         
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-800">
+                          <h3 className="font-bold text-lg text-slate-800">
                             {otherUser?.first_name} {otherUser?.last_name}
                           </h3>
                           
                           {user?.role === 'seeker' && otherUser?.company && (
-                            <p className="text-gray-600 text-sm">
+                            <p className="text-slate-600 text-sm font-medium">
                               {otherUser.company}
                             </p>
                           )}
                           
                           {vacancy && (
-                            <p className="text-blue-600 text-sm font-medium">
+                            <p className="text-indigo-600 text-sm font-semibold">
                               Вакансия: {vacancy.title}
                             </p>
                           )}
                           
                           {otherUser?.city && (
-                            <p className="text-gray-500 text-sm">
+                            <p className="text-slate-500 text-sm">
                               {otherUser.city}
                             </p>
                           )}
                           
-                          <div className="mt-1">
+                          <div className="mt-2 flex items-center gap-1">
+                            <Clock size={12} />
                             {isExpired ? (
-                              <p className="text-red-500 text-xs">
+                              <p className="text-red-500 text-xs font-medium">
                                 Время для связи истекло
                               </p>
                             ) : (
-                              <p className="text-green-600 text-xs">
+                              <p className="text-green-600 text-xs font-medium">
                                 Осталось: {hoursLeft}ч {minutesLeft}м
                               </p>
                             )}
@@ -138,7 +154,7 @@ const Matches = () => {
                         
                         <Button
                           onClick={() => handleTelegramContact(otherUser?.telegram_id)}
-                          className="bg-blue-500 hover:bg-blue-600"
+                          className={isExpired ? "bg-slate-300" : "matchwork-button-primary"}
                           size="sm"
                           disabled={isExpired}
                         >

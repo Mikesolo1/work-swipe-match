@@ -1,9 +1,10 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, DollarSign, User, Building2, Heart, X, Plus, Settings, Link, FileText } from 'lucide-react';
+import { MapPin, DollarSign, User, Building2, Heart, X, Plus, Settings, Link, FileText, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
@@ -51,7 +52,6 @@ const Swipe = () => {
         direction: swipeDirection
       });
 
-      // Симуляция мэтча (в реальности проверяется триггером в БД)
       if (swipeDirection === 'like' && Math.random() > 0.7) {
         console.log('Simulating match for target:', target);
         setMatchData(target);
@@ -93,18 +93,30 @@ const Swipe = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+          </div>
+          <p className="text-slate-600 font-medium">Загружаем карточки...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
         <div className="text-center p-6 max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+            <X className="text-red-500" size={24} />
+          </div>
           <h2 className="text-xl font-bold text-red-600 mb-2">Ошибка загрузки</h2>
-          <p className="text-gray-600">{error.message}</p>
+          <p className="text-slate-600">{error.message}</p>
         </div>
       </div>
     );
@@ -112,19 +124,19 @@ const Swipe = () => {
 
   if (!targets || targets.length === 0 || currentIndex >= targets.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center pb-20">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center pb-20">
         <div className="text-center p-6 max-w-md">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="text-6xl mb-4"
+            className="text-6xl mb-4 matchwork-float"
           >
             🎉
           </motion.div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="matchwork-subheading mb-2">
             Пока всё!
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="matchwork-text mb-6">
             {user?.role === 'employer' 
               ? 'Вы просмотрели всех доступных кандидатов. Скоро появятся новые!'
               : 'Вы просмотрели все доступные вакансии. Скоро появятся новые!'
@@ -134,15 +146,14 @@ const Swipe = () => {
             <div className="space-y-3">
               <Button 
                 onClick={handleCreateVacancy}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full matchwork-button-primary"
               >
                 <Plus className="mr-2" size={16} />
                 Создать вакансию
               </Button>
               <Button 
                 onClick={handleManageVacancies}
-                variant="outline"
-                className="w-full"
+                className="w-full matchwork-button-secondary"
               >
                 <Settings className="mr-2" size={16} />
                 Управление вакансиями
@@ -159,24 +170,33 @@ const Swipe = () => {
   const isVacancy = user?.role === 'seeker';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20 overflow-hidden">
+    <div className="min-h-screen matchwork-gradient-bg pb-20 overflow-hidden">
       <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
+        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-4 flex-shrink-0"
         >
-          <h1 className="text-xl font-bold text-gray-800 mb-1">Мэтчворк</h1>
-          <p className="text-sm text-gray-600">
-            {targets.length - currentIndex} карточек осталось
-          </p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="matchwork-gradient-primary w-8 h-8 rounded-lg flex items-center justify-center">
+              <Heart className="text-white" size={16} />
+            </div>
+            <h1 className="matchwork-heading text-xl">Matchwork</h1>
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-3">
+            <Sparkles size={14} />
+            <span>{targets.length - currentIndex} карточек осталось</span>
+          </div>
+
           {user?.role === 'employer' && (
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 onClick={handleCreateVacancy}
                 size="sm"
-                className="flex-1 text-xs"
+                className="flex-1 text-xs matchwork-button-secondary"
               >
                 <Plus className="mr-1" size={12} />
                 Создать
@@ -185,7 +205,7 @@ const Swipe = () => {
                 variant="outline" 
                 onClick={handleManageVacancies}
                 size="sm"
-                className="flex-1 text-xs"
+                className="flex-1 text-xs matchwork-button-secondary"
               >
                 <Settings className="mr-1" size={12} />
                 Управление
@@ -194,6 +214,7 @@ const Swipe = () => {
           )}
         </motion.div>
 
+        {/* Cards Stack */}
         <div className="relative flex-1 mb-4">
           <AnimatePresence>
             {targets.slice(currentIndex, currentIndex + 3).map((target, index) => {
@@ -210,28 +231,28 @@ const Swipe = () => {
                   }}
                   preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
                 >
-                  <Card className="h-full bg-white shadow-lg overflow-hidden" style={{ zIndex: 10 - index }}>
+                  <Card className="h-full matchwork-card overflow-hidden" style={{ zIndex: 10 - index }}>
                     {isVacancy ? (
-                      // Карточка вакансии для соискателя - компактная версия
+                      /* Vacancy Card */
                       <>
                         <CardHeader className="text-center pb-3">
                           <div className="flex items-center justify-center mb-3">
-                            <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-12 h-12 rounded-full flex items-center justify-center">
+                            <div className="matchwork-gradient-primary w-12 h-12 rounded-xl flex items-center justify-center">
                               <Building2 className="text-white" size={20} />
                             </div>
                           </div>
-                          <CardTitle className="text-lg mb-1 leading-tight">{(target as Vacancy).title}</CardTitle>
+                          <CardTitle className="text-lg mb-1 leading-tight text-slate-800">{(target as Vacancy).title}</CardTitle>
                           {(target as Vacancy).employer?.company && (
-                            <p className="text-sm text-gray-600">{(target as Vacancy).employer?.company}</p>
+                            <p className="text-sm text-slate-500 font-medium">{(target as Vacancy).employer?.company}</p>
                           )}
                         </CardHeader>
                         <CardContent className="space-y-3 overflow-y-auto">
-                          <p className="text-sm text-gray-700 line-clamp-3">{(target as Vacancy).description}</p>
+                          <p className="text-sm text-slate-600 line-clamp-3">{(target as Vacancy).description}</p>
                           
                           {((target as Vacancy).salary_min || (target as Vacancy).salary_max) && (
-                            <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded">
+                            <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-lg">
                               <DollarSign size={14} />
-                              <span className="font-medium text-sm">
+                              <span className="font-semibold text-sm">
                                 {(target as Vacancy).salary_min && (target as Vacancy).salary_max 
                                   ? `${(target as Vacancy).salary_min?.toLocaleString()} - ${(target as Vacancy).salary_max?.toLocaleString()} ₽`
                                   : (target as Vacancy).salary_min 
@@ -242,60 +263,60 @@ const Swipe = () => {
                             </div>
                           )}
                           
-                          <div className="flex items-center gap-2 text-gray-600">
+                          <div className="flex items-center gap-2 text-slate-500">
                             <MapPin size={14} />
                             <span className="text-sm">{target.city}</span>
                           </div>
 
                           {(target as Vacancy).skills_required && (target as Vacancy).skills_required.length > 0 && (
                             <div>
-                              <p className="text-xs font-medium text-gray-700 mb-2">Требуемые навыки:</p>
+                              <p className="text-xs font-semibold text-slate-700 mb-2">Требуемые навыки:</p>
                               <div className="flex flex-wrap gap-1">
                                 {(target as Vacancy).skills_required.slice(0, 6).map((skill, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1">{skill}</Badge>
+                                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700">{skill}</Badge>
                                 ))}
                                 {(target as Vacancy).skills_required.length > 6 && (
-                                  <Badge variant="secondary" className="text-xs px-2 py-1">+{(target as Vacancy).skills_required.length - 6}</Badge>
+                                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-slate-100">+{(target as Vacancy).skills_required.length - 6}</Badge>
                                 )}
                               </div>
                             </div>
                           )}
 
                           {(target as Vacancy).team_lead_name && (
-                            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                            <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
                               <Avatar className="w-8 h-8">
                                 <AvatarImage src={(target as Vacancy).team_lead_avatar} />
-                                <AvatarFallback className="text-xs">{(target as Vacancy).team_lead_name?.[0]}</AvatarFallback>
+                                <AvatarFallback className="text-xs bg-indigo-100 text-indigo-600">{(target as Vacancy).team_lead_name?.[0]}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-xs font-medium">{(target as Vacancy).team_lead_name}</p>
-                                <p className="text-xs text-gray-500">Тимлид</p>
+                                <p className="text-xs font-semibold text-slate-700">{(target as Vacancy).team_lead_name}</p>
+                                <p className="text-xs text-slate-500">Тимлид</p>
                               </div>
                             </div>
                           )}
                         </CardContent>
                       </>
                     ) : (
-                      // Карточка кандидата для работодателя - компактная версия
+                      /* User Card */
                       <>
                         <CardHeader className="text-center pb-3">
                           <Avatar className="w-16 h-16 mx-auto mb-3">
                             <AvatarImage src={(target as UserProfile).avatar_url} />
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-indigo-100 text-indigo-600">
                               <User className="w-6 h-6" />
                             </AvatarFallback>
                           </Avatar>
-                          <CardTitle className="text-lg leading-tight">
+                          <CardTitle className="text-lg leading-tight text-slate-800">
                             {(target as UserProfile).first_name} {(target as UserProfile).last_name}
                           </CardTitle>
                           {(target as UserProfile).username && (
-                            <p className="text-sm text-gray-500">@{(target as UserProfile).username}</p>
+                            <p className="text-sm text-slate-500">@{(target as UserProfile).username}</p>
                           )}
                         </CardHeader>
                         <CardContent className="space-y-3 overflow-y-auto">
                           <div className="flex items-center justify-between text-sm">
                             {(target as UserProfile).city && (
-                              <div className="flex items-center gap-1 text-gray-600">
+                              <div className="flex items-center gap-1 text-slate-500">
                                 <MapPin size={12} />
                                 <span>{(target as UserProfile).city}</span>
                               </div>
@@ -303,34 +324,34 @@ const Swipe = () => {
                             {(target as UserProfile).salary_expectation && (
                               <div className="flex items-center gap-1 text-green-600">
                                 <DollarSign size={12} />
-                                <span className="font-medium">от {(target as UserProfile).salary_expectation.toLocaleString()} ₽</span>
+                                <span className="font-semibold">от {(target as UserProfile).salary_expectation.toLocaleString()} ₽</span>
                               </div>
                             )}
                           </div>
 
                           {(target as UserProfile).experience && (
                             <div>
-                              <p className="text-xs font-medium text-gray-700 mb-1">Опыт работы:</p>
-                              <p className="text-sm text-gray-600 line-clamp-2">{(target as UserProfile).experience}</p>
+                              <p className="text-xs font-semibold text-slate-700 mb-1">Опыт работы:</p>
+                              <p className="text-sm text-slate-600 line-clamp-2">{(target as UserProfile).experience}</p>
                             </div>
                           )}
 
                           {(target as UserProfile).achievement && (
                             <div>
-                              <p className="text-xs font-medium text-gray-700 mb-1">Главное достижение:</p>
-                              <p className="text-sm text-gray-600 line-clamp-2">{(target as UserProfile).achievement}</p>
+                              <p className="text-xs font-semibold text-slate-700 mb-1">Главное достижение:</p>
+                              <p className="text-sm text-slate-600 line-clamp-2">{(target as UserProfile).achievement}</p>
                             </div>
                           )}
 
                           {(target as UserProfile).skills && (target as UserProfile).skills.length > 0 && (
                             <div>
-                              <p className="text-xs font-medium text-gray-700 mb-2">Навыки:</p>
+                              <p className="text-xs font-semibold text-slate-700 mb-2">Навыки:</p>
                               <div className="flex flex-wrap gap-1">
                                 {(target as UserProfile).skills.slice(0, 6).map((skill, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1">{skill}</Badge>
+                                  <Badge key={index} variant="secondary" className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700">{skill}</Badge>
                                 ))}
                                 {(target as UserProfile).skills.length > 6 && (
-                                  <Badge variant="secondary" className="text-xs px-2 py-1">+{(target as UserProfile).skills.length - 6}</Badge>
+                                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-slate-100">+{(target as UserProfile).skills.length - 6}</Badge>
                                 )}
                               </div>
                             </div>
@@ -340,14 +361,14 @@ const Swipe = () => {
                             <div className="flex gap-2">
                               {(target as UserProfile).resume_url && (
                                 <a href={(target as UserProfile).resume_url} target="_blank" rel="noopener noreferrer" 
-                                   className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                                   className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
                                   <FileText size={12} />
                                   Резюме
                                 </a>
                               )}
                               {(target as UserProfile).portfolio_url && (
                                 <a href={(target as UserProfile).portfolio_url} target="_blank" rel="noopener noreferrer"
-                                   className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                                   className="flex items-center gap-1 text-xs text-indigo-600 hover:underline">
                                   <Link size={12} />
                                   Портфолио
                                 </a>
@@ -364,19 +385,20 @@ const Swipe = () => {
           </AnimatePresence>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex justify-center gap-6 flex-shrink-0">
           <Button
             onClick={() => handleButtonSwipe('dislike')}
             variant="outline"
             size="lg"
-            className="w-14 h-14 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300"
+            className="w-14 h-14 rounded-full border-red-200 hover:bg-red-50 hover:border-red-300 transition-all"
           >
             <X className="text-red-500" size={20} />
           </Button>
           <Button
             onClick={() => handleButtonSwipe('like')}
             size="lg"
-            className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+            className="w-14 h-14 rounded-full matchwork-gradient-secondary hover:scale-110 transition-transform matchwork-pulse"
           >
             <Heart className="text-white" size={20} />
           </Button>

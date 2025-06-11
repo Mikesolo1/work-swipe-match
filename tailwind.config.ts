@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Matchwork brand colors
+				matchwork: {
+					primary: 'rgb(var(--matchwork-primary))',
+					'primary-light': 'rgb(var(--matchwork-primary-light))',
+					secondary: 'rgb(var(--matchwork-secondary))',
+					accent: 'rgb(var(--matchwork-accent))',
+					success: 'rgb(var(--matchwork-success))',
+					warning: 'rgb(var(--matchwork-warning))',
+					background: 'rgb(var(--matchwork-background))',
+					surface: 'rgb(var(--matchwork-surface))',
+					text: 'rgb(var(--matchwork-text))',
+					'text-secondary': 'rgb(var(--matchwork-text-secondary))'
 				}
 			},
 			borderRadius: {
@@ -89,6 +103,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 			}
 		}
 	},

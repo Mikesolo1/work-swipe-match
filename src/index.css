@@ -1,94 +1,88 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Matchwork Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 255 255 255;
+    --foreground: 15 23 42;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 79 70 229;
+    --primary-foreground: 255 255 255;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 241 245 249;
+    --secondary-foreground: 51 65 85;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 248 250 252;
+    --muted-foreground: 100 116 139;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 241 245 249;
+    --accent-foreground: 51 65 85;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 79 70 229;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Matchwork Brand Colors */
+    --matchwork-primary: 79 70 229;
+    --matchwork-primary-light: 99 102 241;
+    --matchwork-secondary: 236 72 153;
+    --matchwork-accent: 59 130 246;
+    --matchwork-success: 34 197 94;
+    --matchwork-warning: 251 191 36;
+    --matchwork-background: 248 250 252;
+    --matchwork-surface: 255 255 255;
+    --matchwork-text: 15 23 42;
+    --matchwork-text-secondary: 71 85 105;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 15 23 42;
+    --foreground: 248 250 252;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 30 41 59;
+    --card-foreground: 248 250 252;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 99 102 241;
+    --primary-foreground: 15 23 42;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 51 65 85;
+    --secondary-foreground: 248 250 252;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 51 65 85;
+    --accent-foreground: 248 250 252;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 99 102 241;
+
+    --matchwork-background: 15 23 42;
+    --matchwork-surface: 30 41 59;
+    --matchwork-text: 248 250 252;
+    --matchwork-text-secondary: 148 163 184;
   }
 }
 
@@ -98,6 +92,79 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Matchwork Gradient Backgrounds */
+  .matchwork-gradient-primary {
+    background: linear-gradient(135deg, rgb(79 70 229) 0%, rgb(99 102 241) 50%, rgb(139 92 246) 100%);
+  }
+  
+  .matchwork-gradient-secondary {
+    background: linear-gradient(135deg, rgb(236 72 153) 0%, rgb(244 114 182) 50%, rgb(251 146 60) 100%);
+  }
+  
+  .matchwork-gradient-accent {
+    background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 197 253) 100%);
+  }
+  
+  .matchwork-gradient-success {
+    background: linear-gradient(135deg, rgb(34 197 94) 0%, rgb(74 222 128) 100%);
+  }
+
+  .matchwork-gradient-bg {
+    background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 50%, rgb(226 232 240) 100%);
+  }
+
+  .matchwork-glass {
+    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .matchwork-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg rounded-xl;
+  }
+
+  .matchwork-button-primary {
+    @apply matchwork-gradient-primary text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+  }
+
+  .matchwork-button-secondary {
+    @apply bg-white/80 text-slate-700 font-semibold py-3 px-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 backdrop-blur-sm;
+  }
+
+  /* Animation utilities */
+  .matchwork-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .matchwork-pulse {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(79, 70, 229, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(79, 70, 229, 0.6); }
+  }
+
+  /* Typography */
+  .matchwork-heading {
+    @apply text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent;
+  }
+
+  .matchwork-subheading {
+    @apply text-xl font-semibold text-slate-700;
+  }
+
+  .matchwork-text {
+    @apply text-slate-600 leading-relaxed;
   }
 }

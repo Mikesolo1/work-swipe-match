@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, UserSearch, Building2 } from 'lucide-react';
+import { Heart, UserSearch, Building2, Sparkles, Users, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +20,6 @@ const Index = () => {
         if (tg.initDataUnsafe.user) {
           setTelegramUser(tg.initDataUnsafe.user);
         } else {
-          // Mock для разработки
           const mockUser = {
             id: 123456789,
             first_name: "Александр",
@@ -32,7 +30,6 @@ const Index = () => {
           setTelegramUser(mockUser);
         }
       } else {
-        // Для разработки без Telegram
         const mockUser = {
           id: 123456789,
           first_name: "Александр",
@@ -67,84 +64,127 @@ const Index = () => {
 
   if (loading || isInitializing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Подключение к Telegram...</p>
+          <div className="w-16 h-16 mx-auto mb-4 matchwork-gradient-primary rounded-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+          </div>
+          <p className="text-slate-600 font-medium">Инициализация Matchwork...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center p-4 overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
+        {/* Hero Section */}
         <div className="text-center mb-8">
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-r from-pink-500 to-red-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+            className="matchwork-gradient-primary w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 matchwork-pulse"
           >
             <Heart className="text-white" size={32} />
           </motion.div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Мэтчворк
-          </h1>
-          <p className="text-gray-600 text-lg">
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="matchwork-heading text-4xl mb-3"
+          >
+            Matchwork
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="matchwork-text text-lg mb-2"
+          >
             Найди свою идеальную работу или кандидата
-          </p>
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex items-center justify-center gap-4 text-sm text-slate-500"
+          >
+            <div className="flex items-center gap-1">
+              <Users size={16} />
+              <span>10K+ пользователей</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Zap size={16} />
+              <span>Мгновенные мэтчи</span>
+            </div>
+          </motion.div>
         </div>
 
+        {/* User Profile Section */}
         {telegramUser && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-center mb-8"
+            transition={{ delay: 0.6 }}
+            className="matchwork-card p-4 mb-6"
           >
-            <div className="w-16 h-16 rounded-full bg-gray-200 mx-auto mb-3 overflow-hidden">
-              <img 
-                src={telegramUser.photo_url} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 overflow-hidden">
+                <img 
+                  src={telegramUser.photo_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-slate-800">
+                  Привет, {telegramUser.first_name}! 👋
+                </p>
+                <p className="text-sm text-slate-500">
+                  Выберите свою роль для начала
+                </p>
+              </div>
             </div>
-            <p className="text-gray-700 font-medium">
-              Привет, {telegramUser.first_name}!
-            </p>
-            <p className="text-gray-500 text-sm">
-              Выберите свою роль, чтобы продолжить
-            </p>
           </motion.div>
         )}
 
+        {/* Role Selection Cards */}
         <div className="space-y-4">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
           >
-            <Card className="transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer" 
-                  onClick={() => handleRoleSelect('seeker')}>
-              <CardHeader className="text-center pb-4">
-                <div className="bg-gradient-to-r from-green-400 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Card 
+              className="matchwork-card transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group" 
+              onClick={() => handleRoleSelect('seeker')}
+            >
+              <CardHeader className="text-center pb-3">
+                <div className="matchwork-gradient-success w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <UserSearch className="text-white" size={24} />
                 </div>
-                <CardTitle className="text-xl">Я ищу работу</CardTitle>
+                <CardTitle className="text-xl font-bold text-slate-800">Я ищу работу</CardTitle>
               </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600">
+              <CardContent className="text-center pt-0">
+                <p className="matchwork-text">
                   Просматривайте вакансии и находите идеальные предложения
                 </p>
+                <div className="flex items-center justify-center gap-2 mt-3 text-xs text-slate-400">
+                  <Sparkles size={12} />
+                  <span>Умный алгоритм подбора</span>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -154,31 +194,39 @@ const Index = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <Card className="transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer" 
-                  onClick={() => handleRoleSelect('employer')}>
-              <CardHeader className="text-center pb-4">
-                <div className="bg-gradient-to-r from-purple-400 to-pink-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Card 
+              className="matchwork-card transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group" 
+              onClick={() => handleRoleSelect('employer')}
+            >
+              <CardHeader className="text-center pb-3">
+                <div className="matchwork-gradient-secondary w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                   <Building2 className="text-white" size={24} />
                 </div>
-                <CardTitle className="text-xl">Я ищу кандидатов</CardTitle>
+                <CardTitle className="text-xl font-bold text-slate-800">Я ищу кандидатов</CardTitle>
               </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600">
+              <CardContent className="text-center pt-0">
+                <p className="matchwork-text">
                   Размещайте вакансии и находите талантливых специалистов
                 </p>
+                <div className="flex items-center justify-center gap-2 mt-3 text-xs text-slate-400">
+                  <Sparkles size={12} />
+                  <span>Точный таргетинг</span>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
+        {/* Footer */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
           className="text-center mt-8"
         >
-          <p className="text-xs text-gray-400">
-            Powered by Telegram Web App
+          <p className="text-xs text-slate-400 flex items-center justify-center gap-2">
+            <span>Powered by</span>
+            <span className="font-semibold">Telegram Web App</span>
           </p>
         </motion.div>
       </motion.div>

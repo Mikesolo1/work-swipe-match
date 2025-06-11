@@ -33,7 +33,9 @@ export const useMatchesOptimized = () => {
       refetch(); // Refetch matches when new match is created
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, [user, refetch]);
 
   // Helper to get match info for current user

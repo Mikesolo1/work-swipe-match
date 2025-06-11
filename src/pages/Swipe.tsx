@@ -57,6 +57,10 @@ const Swipe = () => {
     navigate('/vacancy-management');
   };
 
+  const handleRetry = () => {
+    refetchTargets();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
@@ -84,7 +88,7 @@ const Swipe = () => {
           <h2 className="matchwork-subheading text-red-600 mb-2">Ошибка загрузки</h2>
           <p className="matchwork-text">{error}</p>
           <button 
-            onClick={refetchTargets}
+            onClick={handleRetry}
             className="mt-4 matchwork-button-primary"
           >
             Попробовать снова

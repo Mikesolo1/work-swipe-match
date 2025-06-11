@@ -1,76 +1,94 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Matchwork Design System - полная стилизация под лендинг */
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
   :root {
-    --background: 255 255 255;
-    --foreground: 30 41 59;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 255 255 255;
-    --card-foreground: 30 41 59;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 255 255 255;
-    --popover-foreground: 30 41 59;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 59 130 246;
-    --primary-foreground: 255 255 255;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 241 245 249;
-    --secondary-foreground: 51 65 85;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 248 250 252;
-    --muted-foreground: 100 116 139;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 241 245 249;
-    --accent-foreground: 51 65 85;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 59 130 246;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Matchwork Brand Colors - из лендинга */
-    --matchwork-primary: 37 99 235; /* blue-600 */
-    --matchwork-secondary: 139 92 246; /* violet-500 */
-    --matchwork-accent: 14 165 233; /* sky-500 */
-    --matchwork-success: 34 197 94; /* green-500 */
-    --matchwork-warning: 248 250 25; /* amber-400 */
-    --matchwork-background: 248 250 252; /* slate-50 */
-    --matchwork-surface: 255 255 255;
-    --matchwork-text: 30 41 59; /* slate-800 */
-    --matchwork-text-secondary: 71 85 105; /* slate-600 */
-    --matchwork-text-muted: 148 163 184; /* slate-400 */
-    --matchwork-border: 226 232 240; /* slate-200 */
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 15 23 42;
-    --foreground: 248 250 252;
-    --card: 30 41 59;
-    --card-foreground: 248 250 252;
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
-    --primary: 99 102 241;
-    --primary-foreground: 15 23 42;
-    --secondary: 51 65 85;
-    --secondary-foreground: 248 250 252;
-    --muted: 51 65 85;
-    --muted-foreground: 148 163 184;
-    --accent: 51 65 85;
-    --accent-foreground: 248 250 252;
-    --destructive: 239 68 68;
-    --destructive-foreground: 248 250 252;
-    --border: 51 65 85;
-    --input: 51 65 85;
-    --ring: 99 102 241;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -80,138 +98,6 @@
   }
 
   body {
-    @apply bg-matchwork-background text-matchwork-text font-sans antialiased;
-    background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 100%);
-    min-height: 100vh;
-  }
-}
-
-@layer components {
-  /* Основные градиенты как на лендинге */
-  .matchwork-gradient-primary {
-    background: linear-gradient(135deg, rgb(37 99 235) 0%, rgb(59 130 246) 50%, rgb(139 92 246) 100%);
-  }
-  
-  .matchwork-gradient-secondary {
-    background: linear-gradient(135deg, rgb(139 92 246) 0%, rgb(168 85 247) 50%, rgb(236 72 153) 100%);
-  }
-  
-  .matchwork-gradient-accent {
-    background: linear-gradient(135deg, rgb(14 165 233) 0%, rgb(37 99 235) 100%);
-  }
-
-  .matchwork-gradient-bg {
-    background: linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 50%, rgb(226 232 240) 100%);
-  }
-
-  /* Карточки */
-  .matchwork-card {
-    @apply bg-white/95 backdrop-blur-sm border border-matchwork-border shadow-lg rounded-2xl;
-  }
-
-  .matchwork-card-glass {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl;
-  }
-
-  /* Кнопки */
-  .matchwork-button-primary {
-    @apply matchwork-gradient-primary text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5;
-  }
-
-  .matchwork-button-secondary {
-    @apply bg-white text-matchwork-text font-semibold py-3 px-6 rounded-xl border border-matchwork-border shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5;
-  }
-
-  .matchwork-button-outline {
-    @apply bg-transparent text-matchwork-primary font-semibold py-3 px-6 rounded-xl border-2 border-matchwork-primary hover:bg-matchwork-primary hover:text-white transition-all duration-300;
-  }
-
-  /* Типографика как на лендинге */
-  .matchwork-heading {
-    @apply text-3xl font-bold bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 bg-clip-text text-transparent;
-  }
-
-  .matchwork-heading-large {
-    @apply text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 bg-clip-text text-transparent;
-  }
-
-  .matchwork-subheading {
-    @apply text-xl font-semibold text-matchwork-text;
-  }
-
-  .matchwork-text {
-    @apply text-matchwork-text-secondary leading-relaxed;
-  }
-
-  .matchwork-text-muted {
-    @apply text-matchwork-text-muted text-sm;
-  }
-
-  /* Анимации */
-  .matchwork-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-  }
-
-  .matchwork-pulse {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
-    50% { box-shadow: 0 0 30px rgba(37, 99, 235, 0.6); }
-  }
-
-  .matchwork-slide-up {
-    animation: slideUp 0.5s ease-out;
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Специальные эффекты */
-  .matchwork-glow {
-    @apply shadow-lg;
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1), 0 10px 10px -5px rgba(37, 99, 235, 0.04);
-  }
-
-  .matchwork-glow-strong {
-    box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.2), 0 10px 10px -5px rgba(37, 99, 235, 0.1);
-  }
-
-  /* Состояния для интерактивных элементов */
-  .matchwork-interactive {
-    @apply transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer;
-  }
-
-  .matchwork-interactive:hover {
-    @apply matchwork-glow-strong;
-  }
-}
-
-/* Утилиты для компонентов */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .bg-blur {
-    backdrop-filter: blur(8px);
-  }
-  
-  .bg-blur-strong {
-    backdrop-filter: blur(16px);
+    @apply bg-background text-foreground;
   }
 }

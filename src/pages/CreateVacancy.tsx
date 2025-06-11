@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,7 +114,7 @@ const CreateVacancy = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
+    <div className="min-h-screen matchwork-gradient-bg pb-20">
       <div className="p-4 max-w-md mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -131,8 +130,8 @@ const CreateVacancy = () => {
             <ArrowLeft size={20} />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Создать вакансию</h1>
-            <p className="text-gray-600">Привлеките лучших кандидатов</p>
+            <h1 className="matchwork-heading text-2xl">Создать вакансию</h1>
+            <p className="matchwork-text-muted">Привлеките лучших кандидатов</p>
           </div>
         </motion.div>
 
@@ -142,7 +141,7 @@ const CreateVacancy = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card>
+            <Card className="matchwork-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 size={20} />
@@ -151,7 +150,7 @@ const CreateVacancy = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Название вакансии *
                   </label>
                   <Input
@@ -163,7 +162,7 @@ const CreateVacancy = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Описание вакансии *
                   </label>
                   <Textarea
@@ -176,7 +175,7 @@ const CreateVacancy = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Город *
                   </label>
                   <Select value={formData.city} onValueChange={(value) => setFormData({...formData, city: value})}>
@@ -195,7 +194,7 @@ const CreateVacancy = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       Зарплата от
                     </label>
                     <Input
@@ -206,7 +205,7 @@ const CreateVacancy = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       Зарплата до
                     </label>
                     <Input
@@ -226,13 +225,13 @@ const CreateVacancy = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card>
+            <Card className="matchwork-card">
               <CardHeader>
                 <CardTitle>Тимлид (опционально)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Имя тимлида
                   </label>
                   <Input
@@ -242,7 +241,7 @@ const CreateVacancy = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Аватар тимлида (URL)
                   </label>
                   <Input
@@ -260,13 +259,13 @@ const CreateVacancy = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card>
+            <Card className="matchwork-card">
               <CardHeader>
                 <CardTitle>Требуемые навыки</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Выбрать из категорий
                   </label>
                   <div className="flex gap-2">
@@ -289,7 +288,7 @@ const CreateVacancy = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-matchwork-text mb-1">
                     Добавить навык вручную
                   </label>
                   <div className="flex gap-2">
@@ -327,7 +326,7 @@ const CreateVacancy = () => {
           >
             <Button 
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full matchwork-button-primary"
               disabled={isSubmitting || !formData.title || !formData.description || !formData.city}
             >
               {isSubmitting ? 'Создание...' : 'Создать вакансию'}

@@ -3,160 +3,186 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Heart, User, Building2 } from 'lucide-react';
+import { MessageCircle, Heart, User, Clock, Sparkles, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useMatches } from '@/hooks/useMatches';
+import { useMatchesOptimized } from '@/hooks/useMatchesOptimized';
 import { useAuth } from '@/hooks/useAuth';
 import BottomNav from '@/components/BottomNav';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import EmptyState from '@/components/EmptyState';
+import NetworkStatus from '@/components/NetworkStatus';
 
 const Matches = () => {
   const { user } = useAuth();
-  const { data: matches, isLoading } = useMatches();
+  const { 
+    matches, 
+    isLoading, 
+    error, 
+    refetch, 
+    getMatchInfo, 
+    formatTimeLeft, 
+    hasMatches 
+  } = useMatchesOptimized();
 
   const handleTelegramContact = (telegramId: number) => {
     const telegramUrl = `https://t.me/user?id=${telegramId}`;
     window.open(telegramUrl, '_blank');
   };
 
-  const getMatchInfo = (match: any) => {
-    if (!user) return null;
+  const handleRefresh = () => {
+    refetch();
+  };
 
-    // Определяем, кто является другой стороной мэтча
-    const otherParticipant = match.participant_a === user.id 
-      ? match.participant_b_user 
-      : match.participant_a_user;
-
-    return {
-      user: otherParticipant,
-      vacancy: match.vacancy,
-      isExpired: new Date(match.expires_at) < new Date()
-    };
+  const handleStartSwipe = () => {
+    window.location.href = '/swipe';
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Загружаем мэтчи..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
+        <EmptyState
+          icon="❌"
+          title="Ошибка загрузки"
+          description={error}
+          actionText="Попробовать снова"
+          onAction={handleRefresh}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
-      <div className="p-4 max-w-md mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
-        >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-            <Heart className="text-red-500" size={24} />
-            Мэтчи
-          </h1>
-          <p className="text-gray-600">
-            {matches?.length || 0} взаимных интересов
-          </p>
-        </motion.div>
-
-        {!matches || matches.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
+    <>
+      <NetworkStatus />
+      <div className="min-h-screen bg-matchwork-background pb-20">
+        <div className="p-4 max-w-md mx-auto">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-6 space-y-4"
           >
-            <div className="text-6xl mb-4">💔</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Пока нет мэтчей
-            </h3>
-            <p className="text-gray-500">
-              Продолжайте свайпать, чтобы найти идеальные совпадения!
-            </p>
+            <div className="flex items-center justify-center gap-3">
+              <div className="matchwork-gradient-secondary w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
+                <Heart className="text-white" size={18} />
+              </div>
+              <h1 className="matchwork-heading text-2xl">Мэтчи</h1>
+              <Button
+                onClick={handleRefresh}
+                className="w-10 h-10 rounded-2xl bg-white/80 hover:bg-white border border-matchwork-border"
+                size="sm"
+              >
+                <RefreshCw size={16} className="text-matchwork-primary" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center justify-center gap-2 matchwork-text-muted">
+              <Sparkles size={16} className="text-matchwork-accent" />
+              <span className="font-medium">{matches.length} взаимных интересов</span>
+            </div>
           </motion.div>
-        ) : (
-          <div className="space-y-4">
-            {matches.map((match, index) => {
-              const matchInfo = getMatchInfo(match);
-              if (!matchInfo) return null;
 
-              const { user: otherUser, vacancy, isExpired } = matchInfo;
-              const timeLeft = new Date(match.expires_at).getTime() - new Date().getTime();
-              const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
-              const minutesLeft = Math.max(0, Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)));
+          {!hasMatches ? (
+            <EmptyState
+              icon="💔"
+              title="Пока нет мэтчей"
+              description="Продолжайте свайпать, чтобы найти идеальные совпадения!"
+              actionText="Начать поиск"
+              onAction={handleStartSwipe}
+            />
+          ) : (
+            <div className="space-y-4">
+              {matches.map((match, index) => {
+                const matchInfo = getMatchInfo(match);
+                if (!matchInfo) return null;
 
-              return (
-                <motion.div
-                  key={match.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className={`hover:shadow-lg transition-all duration-300 ${isExpired ? 'opacity-60' : ''}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={otherUser?.avatar_url} />
-                          <AvatarFallback>
-                            {otherUser?.first_name?.[0] || <User className="w-6 h-6" />}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-800">
-                            {otherUser?.first_name} {otherUser?.last_name}
-                          </h3>
+                const { user: otherUser, vacancy, isExpired, timeLeft } = matchInfo;
+                const { hours, minutes } = formatTimeLeft(timeLeft);
+
+                return (
+                  <motion.div
+                    key={match.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className={`matchwork-card hover:shadow-xl transition-all duration-300 ${isExpired ? 'opacity-60' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-16 h-16 ring-2 ring-matchwork-primary/20">
+                            <AvatarImage src={otherUser?.avatar_url} />
+                            <AvatarFallback className="bg-matchwork-primary/10 text-matchwork-primary">
+                              {otherUser?.first_name?.[0] || <User className="w-6 h-6" />}
+                            </AvatarFallback>
+                          </Avatar>
                           
-                          {user?.role === 'seeker' && otherUser?.company && (
-                            <p className="text-gray-600 text-sm">
-                              {otherUser.company}
-                            </p>
-                          )}
-                          
-                          {vacancy && (
-                            <p className="text-blue-600 text-sm font-medium">
-                              Вакансия: {vacancy.title}
-                            </p>
-                          )}
-                          
-                          {otherUser?.city && (
-                            <p className="text-gray-500 text-sm">
-                              {otherUser.city}
-                            </p>
-                          )}
-                          
-                          <div className="mt-1">
-                            {isExpired ? (
-                              <p className="text-red-500 text-xs">
-                                Время для связи истекло
-                              </p>
-                            ) : (
-                              <p className="text-green-600 text-xs">
-                                Осталось: {hoursLeft}ч {minutesLeft}м
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg text-matchwork-text">
+                              {otherUser?.first_name} {otherUser?.last_name}
+                            </h3>
+                            
+                            {user?.role === 'seeker' && otherUser?.company && (
+                              <p className="matchwork-text-secondary text-sm font-medium">
+                                {otherUser.company}
                               </p>
                             )}
+                            
+                            {vacancy && (
+                              <p className="text-matchwork-primary text-sm font-semibold">
+                                Вакансия: {vacancy.title}
+                              </p>
+                            )}
+                            
+                            {otherUser?.city && (
+                              <p className="matchwork-text-muted text-sm">
+                                {otherUser.city}
+                              </p>
+                            )}
+                            
+                            <div className="mt-2 flex items-center gap-1">
+                              <Clock size={12} className="text-matchwork-text-muted" />
+                              {isExpired ? (
+                                <p className="text-red-500 text-xs font-medium">
+                                  Время для связи истекло
+                                </p>
+                              ) : (
+                                <p className="text-matchwork-success text-xs font-medium">
+                                  Осталось: {hours}ч {minutes}м
+                                </p>
+                              )}
+                            </div>
                           </div>
+                          
+                          <Button
+                            onClick={() => otherUser?.telegram_id && handleTelegramContact(otherUser.telegram_id)}
+                            className={isExpired ? "bg-slate-300" : "matchwork-button-primary"}
+                            size="sm"
+                            disabled={isExpired || !otherUser?.telegram_id}
+                          >
+                            <MessageCircle size={16} className="mr-1" />
+                            {isExpired ? 'Истекло' : 'Написать'}
+                          </Button>
                         </div>
-                        
-                        <Button
-                          onClick={() => handleTelegramContact(otherUser?.telegram_id)}
-                          className="bg-blue-500 hover:bg-blue-600"
-                          size="sm"
-                          disabled={isExpired}
-                        >
-                          <MessageCircle size={16} className="mr-1" />
-                          {isExpired ? 'Истекло' : 'Написать'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      <BottomNav activeTab="matches" />
-    </div>
+        <BottomNav activeTab="matches" />
+      </div>
+    </>
   );
 };
 

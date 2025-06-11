@@ -3,33 +3,31 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Heart, User, Building2, Clock, Sparkles } from 'lucide-react';
+import { MessageCircle, Heart, User, Clock, Sparkles, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useMatches } from '@/hooks/useMatches';
+import { useMatchesOptimized } from '@/hooks/useMatchesOptimized';
 import { useAuth } from '@/hooks/useAuth';
 import BottomNav from '@/components/BottomNav';
 
 const Matches = () => {
   const { user } = useAuth();
-  const { data: matches, isLoading } = useMatches();
+  const { 
+    matches, 
+    isLoading, 
+    error, 
+    refetch, 
+    getMatchInfo, 
+    formatTimeLeft, 
+    hasMatches 
+  } = useMatchesOptimized();
 
   const handleTelegramContact = (telegramId: number) => {
     const telegramUrl = `https://t.me/user?id=${telegramId}`;
     window.open(telegramUrl, '_blank');
   };
 
-  const getMatchInfo = (match: any) => {
-    if (!user) return null;
-
-    const otherParticipant = match.participant_a === user.id 
-      ? match.participant_b_user 
-      : match.participant_a_user;
-
-    return {
-      user: otherParticipant,
-      vacancy: match.vacancy,
-      isExpired: new Date(match.expires_at) < new Date()
-    };
+  const handleRefresh = () => {
+    refetch();
   };
 
   if (isLoading) {
@@ -49,6 +47,24 @@ const Matches = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-matchwork-background flex items-center justify-center">
+        <div className="text-center p-6 max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-2xl flex items-center justify-center">
+            <Sparkles className="text-red-500" size={24} />
+          </div>
+          <h2 className="matchwork-subheading text-red-600 mb-2">Ошибка загрузки</h2>
+          <p className="matchwork-text mb-4">{error}</p>
+          <Button onClick={handleRefresh} className="matchwork-button-primary">
+            <RefreshCw size={16} className="mr-2" />
+            Попробовать снова
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-matchwork-background pb-20">
       <div className="p-4 max-w-md mx-auto">
@@ -63,15 +79,22 @@ const Matches = () => {
               <Heart className="text-white" size={18} />
             </div>
             <h1 className="matchwork-heading text-2xl">Мэтчи</h1>
+            <Button
+              onClick={handleRefresh}
+              className="w-10 h-10 rounded-2xl bg-white/80 hover:bg-white border border-matchwork-border"
+              size="sm"
+            >
+              <RefreshCw size={16} className="text-matchwork-primary" />
+            </Button>
           </div>
           
           <div className="flex items-center justify-center gap-2 matchwork-text-muted">
             <Sparkles size={16} className="text-matchwork-accent" />
-            <span className="font-medium">{matches?.length || 0} взаимных интересов</span>
+            <span className="font-medium">{matches.length} взаимных интересов</span>
           </div>
         </motion.div>
 
-        {!matches || matches.length === 0 ? (
+        {!hasMatches ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -83,9 +106,15 @@ const Matches = () => {
             <h3 className="matchwork-subheading mb-3">
               Пока нет мэтчей
             </h3>
-            <p className="matchwork-text text-balance">
+            <p className="matchwork-text text-balance mb-6">
               Продолжайте свайпать, чтобы найти идеальные совпадения!
             </p>
+            <Button 
+              onClick={() => window.location.href = '/swipe'}
+              className="matchwork-button-primary"
+            >
+              Начать поиск
+            </Button>
           </motion.div>
         ) : (
           <div className="space-y-4">
@@ -93,10 +122,8 @@ const Matches = () => {
               const matchInfo = getMatchInfo(match);
               if (!matchInfo) return null;
 
-              const { user: otherUser, vacancy, isExpired } = matchInfo;
-              const timeLeft = new Date(match.expires_at).getTime() - new Date().getTime();
-              const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
-              const minutesLeft = Math.max(0, Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)));
+              const { user: otherUser, vacancy, isExpired, timeLeft } = matchInfo;
+              const { hours, minutes } = formatTimeLeft(timeLeft);
 
               return (
                 <motion.div
@@ -146,17 +173,17 @@ const Matches = () => {
                               </p>
                             ) : (
                               <p className="text-matchwork-success text-xs font-medium">
-                                Осталось: {hoursLeft}ч {minutesLeft}м
+                                Осталось: {hours}ч {minutes}м
                               </p>
                             )}
                           </div>
                         </div>
                         
                         <Button
-                          onClick={() => handleTelegramContact(otherUser?.telegram_id)}
+                          onClick={() => otherUser?.telegram_id && handleTelegramContact(otherUser.telegram_id)}
                           className={isExpired ? "bg-slate-300" : "matchwork-button-primary"}
                           size="sm"
-                          disabled={isExpired}
+                          disabled={isExpired || !otherUser?.telegram_id}
                         >
                           <MessageCircle size={16} className="mr-1" />
                           {isExpired ? 'Истекло' : 'Написать'}

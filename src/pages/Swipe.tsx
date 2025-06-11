@@ -1,12 +1,11 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { useSwipeTargets, useSwipe } from '@/hooks/useSwipe';
+import { useSwipeOptimized } from '@/hooks/useSwipeOptimized';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/hooks/use-toast";
 import BottomNav from '@/components/BottomNav';
 import MatchModal from '@/components/MatchModal';
 import TinderCardWrapper, { TinderCardRef } from '@/components/TinderCard';
@@ -17,57 +16,30 @@ import NoMoreCards from '@/components/NoMoreCards';
 
 const Swipe = () => {
   const { user } = useAuth();
-  const { data: targets, isLoading, error } = useSwipeTargets();
-  const { createSwipe } = useSwipe();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showMatch, setShowMatch] = useState(false);
-  const [matchData, setMatchData] = useState(null);
   const cardRefs = useRef<(TinderCardRef | null)[]>([]);
+  
+  const {
+    currentTarget,
+    remainingCount,
+    hasMore,
+    isLoading,
+    error,
+    showMatchModal,
+    matchData,
+    handleSwipe,
+    closeMatchModal,
+    refetchTargets,
+    isVacancy,
+    targets,
+    currentIndex,
+  } = useSwipeOptimized();
 
-  console.log('Swipe component - user:', user, 'targets:', targets, 'loading:', isLoading, 'error:', error);
+  console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error);
 
-  const handleSwipe = async (direction: string) => {
-    if (!targets || !targets[currentIndex] || !user) {
-      console.log('Cannot swipe - missing data:', { targets: !!targets, currentIndex, user: !!user });
-      return;
-    }
-
-    const target = targets[currentIndex];
-    const swipeDirection = direction === 'right' ? 'like' : 'dislike';
-    
-    console.log('Handling swipe:', direction, 'on target:', target.id, 'as:', swipeDirection);
-    
-    try {
-      await createSwipe.mutateAsync({
-        target_id: target.id,
-        target_type: user.role === 'seeker' ? 'vacancy' : 'user',
-        direction: swipeDirection
-      });
-
-      if (swipeDirection === 'like' && Math.random() > 0.7) {
-        console.log('Simulating match for target:', target);
-        setMatchData(target);
-        setShowMatch(true);
-      }
-
-      toast({
-        title: swipeDirection === 'like' ? "Лайк отправлен!" : "Пропущено",
-        description: swipeDirection === 'like' ? "Возможно, у вас будет мэтч!" : "Переходим к следующей карточке",
-      });
-
-      setTimeout(() => {
-        setCurrentIndex(prev => prev + 1);
-      }, 300);
-    } catch (error) {
-      console.error('Error creating swipe:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось сохранить действие. Попробуйте еще раз.",
-        variant: "destructive"
-      });
-    }
+  const handleCardSwipe = async (direction: string) => {
+    console.log('Card swiped:', direction);
+    await handleSwipe(direction as 'left' | 'right');
   };
 
   const handleButtonSwipe = (direction: 'like' | 'dislike') => {
@@ -110,13 +82,19 @@ const Swipe = () => {
             <X className="text-red-500" size={24} />
           </div>
           <h2 className="matchwork-subheading text-red-600 mb-2">Ошибка загрузки</h2>
-          <p className="matchwork-text">{error.message}</p>
+          <p className="matchwork-text">{error}</p>
+          <button 
+            onClick={refetchTargets}
+            className="mt-4 matchwork-button-primary"
+          >
+            Попробовать снова
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!targets || targets.length === 0 || currentIndex >= targets.length) {
+  if (!hasMore) {
     return (
       <div className="min-h-screen bg-matchwork-background flex items-center justify-center pb-20">
         <NoMoreCards 
@@ -129,14 +107,11 @@ const Swipe = () => {
     );
   }
 
-  const currentTarget = targets[currentIndex];
-  const isVacancy = user?.role === 'seeker';
-
   return (
     <div className="min-h-screen bg-matchwork-background pb-20 overflow-hidden">
       <div className="p-4 max-w-md mx-auto h-screen flex flex-col">
         <SwipeHeader 
-          remainingCount={targets.length - currentIndex}
+          remainingCount={remainingCount}
           userRole={user?.role}
           onCreateVacancy={handleCreateVacancy}
           onManageVacancies={handleManageVacancies}
@@ -151,11 +126,10 @@ const Swipe = () => {
                 <TinderCardWrapper
                   key={target.id}
                   ref={el => cardRefs.current[actualIndex] = el}
-                  onSwipe={handleSwipe}
+                  onSwipe={handleCardSwipe}
                   onCardLeftScreen={() => {
-                    if (actualIndex === currentIndex) {
-                      setCurrentIndex(prev => prev + 1);
-                    }
+                    // Card has left screen, no additional action needed
+                    // as the swipe is already handled in handleCardSwipe
                   }}
                   preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
                 >
@@ -177,9 +151,9 @@ const Swipe = () => {
       <BottomNav activeTab="swipe" />
       
       <MatchModal 
-        isOpen={showMatch}
+        isOpen={showMatchModal}
         matchData={matchData}
-        onClose={() => setShowMatch(false)}
+        onClose={closeMatchModal}
       />
     </div>
   );

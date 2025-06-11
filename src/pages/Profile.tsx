@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,6 @@ const Profile = () => {
         salary_expectation: profileData.salary_expectation ? parseInt(profileData.salary_expectation) : null
       };
       
-      console.log('Saving profile data:', updateData);
       await updateProfile(updateData);
       
       toast({
@@ -101,7 +99,6 @@ const Profile = () => {
       
       setIsEditing(false);
     } catch (error) {
-      console.error('Error saving profile:', error);
       toast({
         title: "Ошибка",
         description: "Не удалось сохранить профиль",
@@ -121,7 +118,6 @@ const Profile = () => {
         description: "Ваш профиль был успешно удален",
       });
     } catch (error) {
-      console.error('Error deleting profile:', error);
       toast({
         title: "Ошибка",
         description: "Не удалось удалить профиль",
@@ -132,14 +128,14 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
+    <div className="min-h-screen matchwork-gradient-bg pb-20">
       <div className="p-4 max-w-md mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -147,7 +143,7 @@ const Profile = () => {
           className="text-center mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-800">Мой профиль</h1>
+            <h1 className="matchwork-heading text-2xl">Мой профиль</h1>
             <div className="flex gap-2">
               {user.role === 'employer' && (
                 <Button
@@ -169,7 +165,7 @@ const Profile = () => {
               )}
             </div>
           </div>
-          <p className="text-gray-600">
+          <p className="matchwork-text">
             {user.role === 'seeker' ? 'Профиль соискателя' : 'Профиль работодателя'}
           </p>
         </motion.div>
@@ -179,7 +175,7 @@ const Profile = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="mb-6">
+          <Card className="mb-6 matchwork-card">
             <CardHeader className="text-center">
               <Avatar className="w-20 h-20 mx-auto mb-4">
                 <AvatarImage src={user.avatar_url || ''} />
@@ -187,10 +183,8 @@ const Profile = () => {
                   <User className="w-8 h-8" />
                 </AvatarFallback>
               </Avatar>
-              <CardTitle className="text-xl">
-                {user.first_name} {user.last_name}
-              </CardTitle>
-              <p className="text-gray-500">@{user.username}</p>
+              <CardTitle className="text-xl text-matchwork-text">{user.first_name} {user.last_name}</CardTitle>
+              <p className="text-matchwork-text-secondary">@{user.username}</p>
             </CardHeader>
           </Card>
         </motion.div>
@@ -203,7 +197,7 @@ const Profile = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="mb-6">
+              <Card className="mb-6 matchwork-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin size={20} />
@@ -212,7 +206,7 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       Город
                     </label>
                     <Select value={profileData.city} onValueChange={(value) => setProfileData({...profileData, city: value})}>
@@ -231,7 +225,7 @@ const Profile = () => {
 
                   {user.role === 'employer' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-matchwork-text mb-1">
                         Компания
                       </label>
                       <Input
@@ -243,7 +237,7 @@ const Profile = () => {
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       {user.role === 'seeker' ? 'Опыт работы' : 'О компании'}
                     </label>
                     <Textarea
@@ -255,7 +249,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       {user.role === 'seeker' ? 'Главное достижение' : 'Ключевые преимущества'}
                     </label>
                     <Textarea
@@ -269,7 +263,7 @@ const Profile = () => {
                   {user.role === 'seeker' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-matchwork-text mb-1">
                           <FileText className="inline w-4 h-4 mr-1" />
                           Ссылка на резюме
                         </label>
@@ -281,7 +275,7 @@ const Profile = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-matchwork-text mb-1">
                           <Link className="inline w-4 h-4 mr-1" />
                           Ссылка на портфолио
                         </label>
@@ -302,13 +296,13 @@ const Profile = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Card className="mb-6">
+              <Card className="mb-6 matchwork-card">
                 <CardHeader>
                   <CardTitle>Навыки и специализации</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       Выбрать из категорий
                     </label>
                     <div className="flex gap-2">
@@ -331,7 +325,7 @@ const Profile = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-matchwork-text mb-1">
                       Добавить навык вручную
                     </label>
                     <div className="flex gap-2">
@@ -368,7 +362,7 @@ const Profile = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <Card className="mb-6">
+                <Card className="mb-6 matchwork-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <DollarSign size={20} />
@@ -382,7 +376,7 @@ const Profile = () => {
                       value={profileData.salary_expectation}
                       onChange={(e) => setProfileData({...profileData, salary_expectation: e.target.value})}
                     />
-                    <p className="text-sm text-gray-500 mt-1">Ожидаемая зарплата в рублях</p>
+                    <p className="text-sm text-matchwork-text-secondary mt-1">Ожидаемая зарплата в рублях</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -395,7 +389,7 @@ const Profile = () => {
               className="space-y-3"
             >
               <Button 
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full matchwork-button-primary"
                 onClick={handleSave}
                 disabled={isLoading}
               >
@@ -442,7 +436,7 @@ const Profile = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="mb-6">
+              <Card className="mb-6 matchwork-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin size={20} />
@@ -452,33 +446,33 @@ const Profile = () => {
                 <CardContent className="space-y-3">
                   {profileData.city && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Город:</p>
-                      <p className="text-gray-600">{profileData.city}</p>
+                      <p className="text-sm font-medium text-matchwork-text">Город:</p>
+                      <p className="text-matchwork-text-secondary">{profileData.city}</p>
                     </div>
                   )}
                   
                   {user.role === 'employer' && profileData.company && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Компания:</p>
-                      <p className="text-gray-600">{profileData.company}</p>
+                      <p className="text-sm font-medium text-matchwork-text">Компания:</p>
+                      <p className="text-matchwork-text-secondary">{profileData.company}</p>
                     </div>
                   )}
                   
                   {profileData.experience && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-matchwork-text">
                         {user.role === 'seeker' ? 'Опыт работы:' : 'О компании:'}
                       </p>
-                      <p className="text-gray-600">{profileData.experience}</p>
+                      <p className="text-matchwork-text-secondary">{profileData.experience}</p>
                     </div>
                   )}
                   
                   {profileData.achievement && (
                     <div>
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-matchwork-text">
                         {user.role === 'seeker' ? 'Главное достижение:' : 'Ключевые преимущества:'}
                       </p>
-                      <p className="text-gray-600">{profileData.achievement}</p>
+                      <p className="text-matchwork-text-secondary">{profileData.achievement}</p>
                     </div>
                   )}
 
@@ -486,8 +480,8 @@ const Profile = () => {
                     <>
                       {profileData.resume_url && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Резюме:</p>
-                          <a href={profileData.resume_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          <p className="text-sm font-medium text-matchwork-text">Резюме:</p>
+                          <a href={profileData.resume_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline flex items-center gap-1">
                             <FileText size={14} />
                             Посмотреть резюме
                           </a>
@@ -496,8 +490,8 @@ const Profile = () => {
 
                       {profileData.portfolio_url && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Портфолио:</p>
-                          <a href={profileData.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          <p className="text-sm font-medium text-matchwork-text">Портфолио:</p>
+                          <a href={profileData.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline flex items-center gap-1">
                             <Link size={14} />
                             Посмотреть портфолио
                           </a>
@@ -506,7 +500,7 @@ const Profile = () => {
 
                       {profileData.salary_expectation && (
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Ожидаемая зарплата:</p>
+                          <p className="text-sm font-medium text-matchwork-text">Ожидаемая зарплата:</p>
                           <p className="text-green-600 font-medium">от {parseInt(profileData.salary_expectation).toLocaleString()} ₽</p>
                         </div>
                       )}
@@ -522,7 +516,7 @@ const Profile = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
               >
-                <Card className="mb-6">
+                <Card className="mb-6 matchwork-card">
                   <CardHeader>
                     <CardTitle>Навыки и специализации</CardTitle>
                   </CardHeader>

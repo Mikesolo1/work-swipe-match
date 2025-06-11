@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, UserSearch, Building2, Sparkles, Users, Zap, ArrowRight } from 'lucide-react';
@@ -65,7 +64,7 @@ const Index = () => {
 
   if (loading || isInitializing) {
     return (
-      <div className="min-h-screen bg-matchwork-background flex items-center justify-center p-4">
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -81,7 +80,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-matchwork-background flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center p-4 overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -138,7 +137,7 @@ const Index = () => {
             className="matchwork-card p-4"
           >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-violet-500 overflow-hidden ring-2 ring-white shadow-lg">
+              <div className="w-12 h-12 rounded-2xl matchwork-gradient-primary overflow-hidden ring-2 ring-white shadow-lg">
                 {telegramUser.photo_url ? (
                   <img 
                     src={telegramUser.photo_url} 

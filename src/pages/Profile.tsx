@@ -1,495 +1,426 @@
-
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useOnboarding } from '@/hooks/useOnboarding';
-import { useVideoUpload } from '@/hooks/useVideoUpload';
+import { useUpdateUser } from '@/hooks/useUsers';
+import { useCities } from '@/hooks/useCities';
+import { useJobCategories } from '@/hooks/useJobCategories';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, MapPin, Briefcase, Star, DollarSign, Link, FileText, Video, Trash2 } from 'lucide-react';
+import { formatSalary, generateInitials } from '@/utils/formatters';
 import VideoModal from '@/components/video/VideoModal';
 import VideoPlayer from '@/components/video/VideoPlayer';
-import { 
-  User, 
-  MapPin, 
-  Briefcase, 
-  Trophy, 
-  DollarSign, 
-  Link,
-  FileText,
-  Settings,
-  HelpCircle,
-  VideoIcon,
-  Trash2,
-  Building2
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useVideoUpload } from '@/hooks/useVideoUpload';
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
-  const { startOnboarding } = useOnboarding();
-  const { uploadVideo, deleteVideo, isUploading } = useVideoUpload();
+  const updateUser = useUpdateUser();
+  const { data: cities = [] } = useCities();
+  const { data: jobCategories = [] } = useJobCategories();
   const { toast } = useToast();
-  
-  const [isEditing, setIsEditing] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
+  const { deleteVideo } = useVideoUpload();
+
   const [formData, setFormData] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    city: user?.city || '',
-    experience: user?.experience || '',
-    achievement: user?.achievement || '',
-    salary_expectation: user?.salary_expectation?.toString() || '',
-    portfolio_url: user?.portfolio_url || '',
-    resume_url: user?.resume_url || '',
-    company: user?.company || '',
-    skills: user?.skills || [],
+    first_name: '',
+    last_name: '',
+    city: '',
+    skills: [] as string[],
+    experience: '',
+    achievement: '',
+    salary_expectation: 0,
+    portfolio_url: '',
+    resume_url: '',
+    company: '',
+    video_resume_url: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const [skillInput, setSkillInput] = useState('');
+  const [salaryRange, setSalaryRange] = useState([0]);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        city: user.city || '',
+        skills: user.skills || [],
+        experience: user.experience || '',
+        achievement: user.achievement || '',
+        salary_expectation: user.salary_expectation || 0,
+        portfolio_url: user.portfolio_url || '',
+        resume_url: user.resume_url || '',
+        company: user.company || '',
+        video_resume_url: user.video_resume_url || '',
+      });
+      setSalaryRange([user.salary_expectation || 0]);
+    }
+  }, [user]);
+
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: value
     }));
   };
 
-  const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      skills: value.split(',').map(s => s.trim()).filter(s => s.length > 0)
-    }));
+  const handleSalaryChange = (value: number[]) => {
+    setSalaryRange(value);
+    handleInputChange('salary_expectation', value[0]);
   };
 
-  const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      salary_expectation: value
-    }));
+  const addSkill = () => {
+    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
+      const newSkills = [...formData.skills, skillInput.trim()];
+      handleInputChange('skills', newSkills);
+      setSkillInput('');
+    }
   };
 
-  const saveProfile = async () => {
+  const removeSkill = (skillToRemove: string) => {
+    const newSkills = formData.skills.filter(skill => skill !== skillToRemove);
+    handleInputChange('skills', newSkills);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
-      console.log('Saving profile with data:', formData);
-      
-      const updateData: any = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        city: formData.city,
-        company: formData.company,
-        skills: formData.skills,
-      };
-
-      // Добавляем поля только для соискателей
-      if (user?.role === 'seeker') {
-        updateData.experience = formData.experience;
-        updateData.achievement = formData.achievement;
-        updateData.portfolio_url = formData.portfolio_url;
-        updateData.resume_url = formData.resume_url;
-        
-        // Конвертируем зарплату в число
-        if (formData.salary_expectation) {
-          const salary = parseInt(formData.salary_expectation);
-          if (!isNaN(salary)) {
-            updateData.salary_expectation = salary;
-          }
-        }
-      }
-
-      await updateProfile(updateData);
-      setIsEditing(false);
-      
+      await updateProfile(formData);
       toast({
         title: "Успешно!",
         description: "Профиль обновлен",
       });
-    } catch (error: any) {
-      console.error('Error saving profile:', error);
+    } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось сохранить профиль",
+        description: "Не удалось обновить профиль",
         variant: "destructive",
       });
     }
   };
 
   const handleVideoSaved = async (videoUrl: string) => {
+    handleInputChange('video_resume_url', videoUrl);
+    setShowVideoModal(false);
+    
     try {
-      console.log('Saving video URL:', videoUrl);
-      
-      await updateProfile({ 
-        video_resume_url: videoUrl 
-      });
-      
+      await updateProfile({ video_resume_url: videoUrl });
       toast({
         title: "Успешно!",
-        description: "Видео-резюме сохранено",
+        description: "Видео-резюме добавлено",
       });
     } catch (error) {
-      console.error('Error saving video resume:', error);
+      console.error('Error updating video resume:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось сохранить видео",
+        description: "Не удалось сохранить видео-резюме",
         variant: "destructive",
       });
     }
   };
 
   const handleDeleteVideo = async () => {
-    if (!user?.video_resume_url) return;
+    if (!formData.video_resume_url) return;
     
-    const success = await deleteVideo(user.video_resume_url);
-    
+    const success = await deleteVideo(formData.video_resume_url);
     if (success) {
-      await updateProfile({ 
-        video_resume_url: null 
-      });
+      handleInputChange('video_resume_url', '');
+      await updateProfile({ video_resume_url: null });
     }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Профиль недоступен</h2>
-          <p className="text-gray-600">Необходимо войти в систему</p>
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
+        <div className="matchwork-card p-8 shadow-xl">
+          <p className="text-center matchwork-text-muted">Загрузка...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Профиль</h1>
-            <p className="text-gray-600">
-              {user.role === 'seeker' ? 'Соискатель' : 'Работодатель'}
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={startOnboarding}
-              className="bg-white/80 backdrop-blur-sm"
-            >
-              <HelpCircle size={16} />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-              className="bg-white/80 backdrop-blur-sm"
-            >
-              <Settings size={16} />
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Profile Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
-            <CardHeader className="text-center pb-4">
-              <div className="flex flex-col items-center space-y-4">
-                {/* Video Resume or Avatar - только для соискателей */}
-                <div className="relative">
-                  {user.role === 'seeker' && user.video_resume_url ? (
-                    <div className="relative">
-                      <VideoPlayer 
-                        src={user.video_resume_url} 
-                        size="large"
-                      />
-                      {isEditing && (
-                        <Button
-                          onClick={handleDeleteVideo}
-                          size="sm"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 w-8 h-8 rounded-full p-0"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                      <AvatarImage src={user.avatar_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-400 to-blue-500 text-white text-4xl">
-                        {user.role === 'employer' ? <Building2 className="w-12 h-12" /> : <User className="w-12 h-12" />}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-
-                {/* Video Recording Button - только для соискателей */}
-                {user.role === 'seeker' && isEditing && (
-                  <Button
-                    onClick={() => setShowVideoModal(true)}
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                    disabled={isUploading}
-                  >
-                    <VideoIcon className="mr-2" size={16} />
-                    {user.video_resume_url ? 'Перезаписать видео' : 'Записать видео-резюме'}
-                  </Button>
-                )}
-
-                <div>
-                  <CardTitle className="text-2xl text-gray-800">
-                    {user.first_name} {user.last_name}
-                  </CardTitle>
-                  {user.username && (
-                    <p className="text-gray-500 mt-1">@{user.username}</p>
-                  )}
-                  {user.role === 'employer' && user.company && (
-                    <p className="text-gray-600 mt-1">{user.company}</p>
-                  )}
-                  <Badge 
-                    variant="secondary" 
-                    className="mt-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700"
-                  >
-                    {user.role === 'seeker' ? 'Соискатель' : 'Работодатель'}
-                  </Badge>
-                </div>
+    <div className="min-h-screen matchwork-gradient-bg">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Card className="matchwork-card shadow-xl">
+          <CardHeader className="text-center border-b border-matchwork-border">
+            <div className="flex flex-col items-center space-y-4">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={user.avatar_url || ''} alt={user.first_name} />
+                <AvatarFallback className="bg-matchwork-primary text-white text-xl">
+                  {generateInitials(user.first_name, user.last_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-2xl matchwork-text mb-2">
+                  {user.first_name} {user.last_name}
+                </CardTitle>
+                <Badge variant="secondary" className="text-sm">
+                  {user.role === 'seeker' ? 'Соискатель' : 'Работодатель'}
+                </Badge>
               </div>
-            </CardHeader>
+            </div>
+          </CardHeader>
 
-            <CardContent className="space-y-6">
-              {/* Основная информация */}
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Базовая информация */}
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-gray-700">
+                <h3 className="text-lg font-semibold matchwork-text flex items-center gap-2">
+                  <User className="h-5 w-5" />
                   Основная информация
                 </h3>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">Имя</Label>
                     <Input
-                      type="text"
-                      name="first_name"
-                      placeholder="Имя"
+                      id="first_name"
                       value={formData.first_name}
-                      onChange={handleChange}
-                      disabled={!isEditing}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      className="matchwork-input"
                     />
                   </div>
-                  <div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Фамилия</Label>
                     <Input
-                      type="text"
-                      name="last_name"
-                      placeholder="Фамилия"
+                      id="last_name"
                       value={formData.last_name}
-                      onChange={handleChange}
-                      disabled={!isEditing}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      className="matchwork-input"
                     />
                   </div>
                 </div>
 
-                <Input
-                  type="text"
-                  name="city"
-                  placeholder="Город"
-                  value={formData.city}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="city">Город</Label>
+                  <Select value={formData.city} onValueChange={(value) => handleInputChange('city', value)}>
+                    <SelectTrigger className="matchwork-input">
+                      <SelectValue placeholder="Выберите город" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {user.role === 'employer' && (
-                  <Input
-                    type="text"
-                    name="company"
-                    placeholder="Название компании"
-                    value={formData.company}
-                    onChange={handleChange}
-                    disabled={!isEditing}
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Компания</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={(e) => handleInputChange('company', e.target.value)}
+                      className="matchwork-input"
+                      placeholder="Название компании"
+                    />
+                  </div>
                 )}
               </div>
 
-              {/* Информация для соискателей */}
+              <Separator />
+
+              {/* Видео-резюме */}
               {user.role === 'seeker' && (
-                <>
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-700">
-                      Опыт и достижения
-                    </h3>
-                    <Textarea
-                      name="experience"
-                      placeholder="Опыт работы"
-                      value={formData.experience}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                    <Textarea
-                      name="achievement"
-                      placeholder="Главное достижение"
-                      value={formData.achievement}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-700">
-                      Навыки и зарплата
-                    </h3>
-                    <Input
-                      type="text"
-                      name="skills"
-                      placeholder="Навыки (через запятую)"
-                      value={formData.skills?.join(', ') || ''}
-                      onChange={handleSkillsChange}
-                      disabled={!isEditing}
-                    />
-                    <Input
-                      type="number"
-                      name="salary_expectation"
-                      placeholder="Ожидаемая зарплата"
-                      value={formData.salary_expectation}
-                      onChange={handleSalaryChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-700">
-                      Портфолио и резюме
-                    </h3>
-                    <Input
-                      type="url"
-                      name="portfolio_url"
-                      placeholder="Ссылка на портфолио"
-                      value={formData.portfolio_url}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                    <Input
-                      type="url"
-                      name="resume_url"
-                      placeholder="Ссылка на резюме"
-                      value={formData.resume_url}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                </>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold matchwork-text flex items-center gap-2">
+                    <Video className="h-5 w-5" />
+                    Видео-резюме
+                  </h3>
+                  
+                  {formData.video_resume_url ? (
+                    <div className="flex items-center gap-4">
+                      <VideoPlayer src={formData.video_resume_url} size="medium" />
+                      <div className="space-y-2">
+                        <p className="text-sm matchwork-text-muted">Видео-резюме добавлено</p>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowVideoModal(true)}
+                            className="text-sm"
+                          >
+                            Перезаписать
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleDeleteVideo}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowVideoModal(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Video className="h-4 w-4" />
+                      📹 Записать видео-резюме
+                    </Button>
+                  )}
+                </div>
               )}
 
-              {/* Информация для работодателей */}
-              {user.role === 'employer' && (
+              {/* Профессиональная информация для соискателей */}
+              {user.role === 'seeker' && (
                 <>
                   <Separator />
                   
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-700">
-                      Навыки команды
+                    <h3 className="text-lg font-semibold matchwork-text flex items-center gap-2">
+                      <Briefcase className="h-5 w-5" />
+                      Профессиональная информация
                     </h3>
-                    <Input
-                      type="text"
-                      name="skills"
-                      placeholder="Технологии и навыки в компании (через запятую)"
-                      value={formData.skills?.join(', ') || ''}
-                      onChange={handleSkillsChange}
-                      disabled={!isEditing}
-                    />
+
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">Опыт работы</Label>
+                      <Textarea
+                        id="experience"
+                        value={formData.experience}
+                        onChange={(e) => handleInputChange('experience', e.target.value)}
+                        className="matchwork-input"
+                        placeholder="Расскажите о своем опыте работы"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="achievement">Достижения</Label>
+                      <Textarea
+                        id="achievement"
+                        value={formData.achievement}
+                        onChange={(e) => handleInputChange('achievement', e.target.value)}
+                        className="matchwork-input"
+                        placeholder="Ваши основные достижения"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Навыки</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={skillInput}
+                          onChange={(e) => setSkillInput(e.target.value)}
+                          placeholder="Добавить навык"
+                          className="matchwork-input"
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                        />
+                        <Button type="button" onClick={addSkill} variant="outline">
+                          Добавить
+                        </Button>
+                      </div>
+                      
+                      {formData.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {formData.skills.map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-red-100"
+                              onClick={() => removeSkill(skill)}
+                            >
+                              {skill} ×
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label>Ожидаемая зарплата: {formatSalary(salaryRange[0])}</Label>
+                      <Slider
+                        value={salaryRange}
+                        onValueChange={handleSalaryChange}
+                        max={500000}
+                        min={20000}
+                        step={10000}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-sm matchwork-text-muted">
+                        <span>20 000 ₽</span>
+                        <span>500 000 ₽</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold matchwork-text flex items-center gap-2">
+                      <Link className="h-5 w-5" />
+                      Дополнительные ссылки
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="portfolio_url">Портфолио</Label>
+                      <Input
+                        id="portfolio_url"
+                        type="url"
+                        value={formData.portfolio_url}
+                        onChange={(e) => handleInputChange('portfolio_url', e.target.value)}
+                        className="matchwork-input"
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="resume_url">Резюме (ссылка)</Label>
+                      <Input
+                        id="resume_url"
+                        type="url"
+                        value={formData.resume_url}
+                        onChange={(e) => handleInputChange('resume_url', e.target.value)}
+                        className="matchwork-input"
+                        placeholder="https://..."
+                      />
+                    </div>
                   </div>
                 </>
               )}
 
-              {/* Кнопки управления */}
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={saveProfile} 
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    Сохранить
-                  </Button>
-                  <Button 
-                    onClick={() => setIsEditing(false)} 
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Отмена
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2 text-sm">
-                  {user.city && (
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <MapPin size={16} />
-                      <span>{user.city}</span>
-                    </div>
-                  )}
-                  {user.role === 'seeker' && user.experience && (
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <Briefcase size={16} />
-                      <span className="truncate max-w-32">{user.experience}</span>
-                    </div>
-                  )}
-                  {user.role === 'seeker' && user.achievement && (
-                    <div className="flex items-center gap-1 text-gray-600">
-                      <Trophy size={16} />
-                      <span className="truncate max-w-32">{user.achievement}</span>
-                    </div>
-                  )}
-                  {user.role === 'seeker' && user.salary_expectation && (
-                    <div className="flex items-center gap-1 text-green-600">
-                      <DollarSign size={16} />
-                      <span>{user.salary_expectation.toLocaleString()} ₽</span>
-                    </div>
-                  )}
-                  {user.role === 'seeker' && user.portfolio_url && (
-                    <a href={user.portfolio_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
-                      <Link size={16} />
-                      Портфолио
-                    </a>
-                  )}
-                  {user.role === 'seeker' && user.resume_url && (
-                    <a href={user.resume_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
-                      <FileText size={16} />
-                      Резюме
-                    </a>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Video Recording Modal - только для соискателей */}
-        {user.role === 'seeker' && (
-          <VideoModal
-            isOpen={showVideoModal}
-            onClose={() => setShowVideoModal(false)}
-            onVideoSaved={handleVideoSaved}
-            title="Записать видео-резюме"
-            maxDuration={90}
-          />
-        )}
+              <div className="flex justify-center pt-6">
+                <Button
+                  type="submit"
+                  className="matchwork-button-primary px-8 py-2"
+                  disabled={updateUser.isPending}
+                >
+                  {updateUser.isPending ? 'Сохранение...' : 'Сохранить изменения'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
+
+      <VideoModal
+        isOpen={showVideoModal}
+        onClose={() => setShowVideoModal(false)}
+        onVideoSaved={handleVideoSaved}
+        title="Записать видео-резюме"
+        maxDuration={90}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, DollarSign, User, Building2, Link, FileText } from 'lucide-react';
+import VideoPlayer from './video/VideoPlayer';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Vacancy = Tables<'vacancies'> & {
@@ -24,9 +25,18 @@ const SwipeCardContent: React.FC<SwipeCardContentProps> = ({ target, isVacancy }
       <>
         <CardHeader className="text-center pb-3">
           <div className="flex items-center justify-center mb-3">
-            <div className="matchwork-gradient-primary w-12 h-12 rounded-xl flex items-center justify-center">
-              <Building2 className="text-white" size={20} />
-            </div>
+            {vacancy.video_url ? (
+              <VideoPlayer 
+                videoUrl={vacancy.video_url} 
+                size="large"
+                autoPlay={true}
+                showControls={false}
+              />
+            ) : (
+              <div className="matchwork-gradient-primary w-12 h-12 rounded-xl flex items-center justify-center">
+                <Building2 className="text-white" size={20} />
+              </div>
+            )}
           </div>
           <CardTitle className="text-lg mb-1 leading-tight text-slate-800">{vacancy.title}</CardTitle>
           {vacancy.employer?.company && (
@@ -89,12 +99,22 @@ const SwipeCardContent: React.FC<SwipeCardContentProps> = ({ target, isVacancy }
     return (
       <>
         <CardHeader className="text-center pb-3">
-          <Avatar className="w-16 h-16 mx-auto mb-3">
-            <AvatarImage src={user.avatar_url} />
-            <AvatarFallback className="bg-indigo-100 text-indigo-600">
-              <User className="w-6 h-6" />
-            </AvatarFallback>
-          </Avatar>
+          {user.video_resume_url ? (
+            <VideoPlayer 
+              videoUrl={user.video_resume_url} 
+              size="large"
+              autoPlay={true}
+              showControls={false}
+              className="mx-auto mb-3"
+            />
+          ) : (
+            <Avatar className="w-16 h-16 mx-auto mb-3">
+              <AvatarImage src={user.avatar_url} />
+              <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                <User className="w-6 h-6" />
+              </AvatarFallback>
+            </Avatar>
+          )}
           <CardTitle className="text-lg leading-tight text-slate-800">
             {user.first_name} {user.last_name}
           </CardTitle>

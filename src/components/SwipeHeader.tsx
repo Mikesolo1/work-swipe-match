@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Heart, Plus, Settings, Sparkles } from 'lucide-react';
+import { Plus, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 interface SwipeHeaderProps {
   remainingCount: number;
-  userRole?: 'employer' | 'seeker';
+  userRole?: string;
   onCreateVacancy: () => void;
   onManageVacancies: () => void;
 }
@@ -17,42 +18,53 @@ const SwipeHeader: React.FC<SwipeHeaderProps> = ({
   onCreateVacancy,
   onManageVacancies
 }) => {
+  const { startOnboarding } = useOnboarding();
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="text-center mb-6 space-y-4"
+      className="flex items-center justify-between mb-6"
     >
-      <div className="flex items-center justify-center gap-3">
-        <div className="matchwork-gradient-primary w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg">
-          <Heart className="text-white" size={18} />
-        </div>
-        <h1 className="matchwork-heading text-2xl">Matchwork</h1>
+      <div>
+        <h1 className="matchwork-heading text-2xl">Поиск</h1>
+        <p className="matchwork-text-muted">
+          {remainingCount > 0 ? `Осталось ${remainingCount}` : 'Загружаем...'}
+        </p>
       </div>
       
-      <div className="flex items-center justify-center gap-2 matchwork-text-muted">
-        <Sparkles size={16} className="text-matchwork-accent" />
-        <span className="font-medium">{remainingCount} карточек осталось</span>
-      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={startOnboarding}
+          className="bg-white/80 backdrop-blur-sm border-purple-200 hover:bg-purple-50"
+        >
+          <HelpCircle size={16} />
+        </Button>
 
-      {userRole === 'employer' && (
-        <div className="flex gap-3">
-          <Button 
-            onClick={onCreateVacancy}
-            className="flex-1 matchwork-button-secondary text-sm"
-          >
-            <Plus className="mr-2" size={16} />
-            Создать
-          </Button>
-          <Button 
-            onClick={onManageVacancies}
-            className="flex-1 matchwork-button-secondary text-sm"
-          >
-            <Settings className="mr-2" size={16} />
-            Управление
-          </Button>
-        </div>
-      )}
+        {userRole === 'employer' && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCreateVacancy}
+              className="bg-white/80 backdrop-blur-sm border-green-200 hover:bg-green-50"
+            >
+              <Plus size={16} />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onManageVacancies}
+              className="bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50"
+            >
+              <Settings size={16} />
+            </Button>
+          </>
+        )}
+      </div>
     </motion.div>
   );
 };

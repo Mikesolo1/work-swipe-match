@@ -1,8 +1,10 @@
+
 import React, { useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useSwipeOptimized } from '@/hooks/useSwipeOptimized';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
 import MatchModal from '@/components/MatchModal';
@@ -14,11 +16,13 @@ import NoMoreCards from '@/components/NoMoreCards';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
+import OnboardingModal from '@/components/onboarding/OnboardingModal';
 
 const Swipe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const cardRefs = useRef<(TinderCardRef | null)[]>([]);
+  const { showOnboarding, completeOnboarding } = useOnboarding();
   
   const {
     currentTarget,
@@ -146,6 +150,12 @@ const Swipe = () => {
           isOpen={showMatchModal}
           matchData={matchData}
           onClose={closeMatchModal}
+        />
+
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={completeOnboarding}
+          userRole={user?.role || null}
         />
       </div>
     </>

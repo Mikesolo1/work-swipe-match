@@ -7,19 +7,22 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { User, MapPin, DollarSign, Plus, X, Link, FileText, Trash2, Settings } from 'lucide-react';
+import { User, MapPin, DollarSign, Plus, X, Link, FileText, Trash2, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCities } from '@/hooks/useCities';
 import { useJobCategories } from '@/hooks/useJobCategories';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import BottomNav from '@/components/BottomNav';
+import OnboardingModal from '@/components/onboarding/OnboardingModal';
 import { toast } from "@/components/ui/use-toast";
 
 const Profile = () => {
   const { user, updateProfile, signOut } = useAuth();
   const { data: cities } = useCities();
   const { data: jobCategories } = useJobCategories();
+  const { showOnboarding, startOnboarding, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
   
   const [profileData, setProfileData] = useState({
@@ -145,6 +148,15 @@ const Profile = () => {
           <div className="flex items-center justify-between mb-4">
             <h1 className="matchwork-heading text-2xl">Мой профиль</h1>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startOnboarding}
+                className="bg-white/80 backdrop-blur-sm border-purple-200 hover:bg-purple-50"
+              >
+                <HelpCircle size={16} />
+              </Button>
+              
               {user.role === 'employer' && (
                 <Button
                   variant="outline"
@@ -535,6 +547,12 @@ const Profile = () => {
       </div>
 
       <BottomNav activeTab="profile" />
+      
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={completeOnboarding}
+        userRole={user?.role || null}
+      />
     </div>
   );
 };

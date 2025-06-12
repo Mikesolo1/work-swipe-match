@@ -215,9 +215,9 @@ const Profile = () => {
                   {user.role === 'seeker' && user.video_resume_url ? (
                     <div className="relative">
                       <VideoPlayer 
-                        src={user.video_resume_url} 
+                        videoUrl={user.video_resume_url} 
                         size="large"
-                      />
+                       />
                       {isEditing && (
                         <Button
                           onClick={handleDeleteVideo}

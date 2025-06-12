@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Clock, Star, Users } from 'lucide-react';
+import { MessageCircle, Clock, Star, Users, Heart } from 'lucide-react';
 
 interface MatchesGuideStepProps {
   userRole: 'seeker' | 'employer' | null;

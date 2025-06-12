@@ -1,9 +1,12 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Users, DollarSign } from 'lucide-react';
 
-const VacancyCreationStep: React.FC = () => {
+interface VacancyCreationStepProps {
+  userRole: 'seeker' | 'employer' | null;
+}
+
+const VacancyCreationStep: React.FC<VacancyCreationStepProps> = ({ userRole }) => {
   const steps = [
     {
       icon: <Plus className="w-5 h-5 text-blue-500" />,

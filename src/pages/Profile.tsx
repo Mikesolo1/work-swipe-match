@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateUser } from '@/hooks/useUsers';
@@ -48,7 +49,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      const userData = {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         city: user.city || '',
@@ -60,7 +61,8 @@ const Profile = () => {
         resume_url: user.resume_url || '',
         company: user.company || '',
         video_resume_url: user.video_resume_url || '',
-      });
+      };
+      setFormData(userData);
       setSalaryRange([user.salary_expectation || 0]);
     }
   }, [user]);
@@ -94,6 +96,7 @@ const Profile = () => {
     e.preventDefault();
     
     try {
+      console.log('Submitting form data:', formData);
       await updateProfile(formData);
       toast({
         title: "Успешно!",
@@ -110,10 +113,11 @@ const Profile = () => {
   };
 
   const handleVideoSaved = async (videoUrl: string) => {
-    handleInputChange('video_resume_url', videoUrl);
-    setShowVideoModal(false);
-    
     try {
+      console.log('Saving video URL:', videoUrl);
+      handleInputChange('video_resume_url', videoUrl);
+      setShowVideoModal(false);
+      
       await updateProfile({ video_resume_url: videoUrl });
       toast({
         title: "Успешно!",
@@ -132,10 +136,24 @@ const Profile = () => {
   const handleDeleteVideo = async () => {
     if (!formData.video_resume_url) return;
     
-    const success = await deleteVideo(formData.video_resume_url);
-    if (success) {
-      handleInputChange('video_resume_url', '');
-      await updateProfile({ video_resume_url: null });
+    try {
+      console.log('Deleting video:', formData.video_resume_url);
+      const success = await deleteVideo(formData.video_resume_url);
+      if (success) {
+        handleInputChange('video_resume_url', '');
+        await updateProfile({ video_resume_url: null });
+        toast({
+          title: "Успешно!",
+          description: "Видео-резюме удалено",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить видео-резюме",
+        variant: "destructive",
+      });
     }
   };
 

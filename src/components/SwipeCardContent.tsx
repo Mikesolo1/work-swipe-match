@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +27,10 @@ const SwipeCardContent: React.FC<SwipeCardContentProps> = ({ target, isVacancy }
           <div className="flex items-center justify-center mb-3">
             {vacancy.video_url ? (
               <VideoPlayer 
-                src={vacancy.video_url} 
+                videoUrl={vacancy.video_url} 
                 size="large"
+                autoPlay={true}
+                showControls={false}
               />
             ) : (
               <div className="matchwork-gradient-primary w-12 h-12 rounded-xl flex items-center justify-center">
@@ -98,8 +101,10 @@ const SwipeCardContent: React.FC<SwipeCardContentProps> = ({ target, isVacancy }
         <CardHeader className="text-center pb-3">
           {user.video_resume_url ? (
             <VideoPlayer 
-              src={user.video_resume_url} 
+              videoUrl={user.video_resume_url} 
               size="large"
+              autoPlay={true}
+              showControls={false}
               className="mx-auto mb-3"
             />
           ) : (

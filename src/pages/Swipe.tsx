@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +18,7 @@ import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
 import { useSwipeFilters } from '@/hooks/useSwipeFilters';
+import type { SwipeFilters } from '@/types/filters';
 
 const Swipe = () => {
   const { user } = useAuth();
@@ -49,7 +51,7 @@ const Swipe = () => {
     isVacancy,
     targets,
     currentIndex,
-  } = useSwipeOptimized(filters); // Передаем фильтры в хук
+  } = useSwipeOptimized(); // Удаляем передачу фильтров, пока хук не обновлен
 
   console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error, 'filters:', filters);
 

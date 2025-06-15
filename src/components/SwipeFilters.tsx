@@ -60,7 +60,7 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
   }, [filters.skills]);
 
   const handleRemoveSkill = useCallback((skillToRemove: string) => {
-    const newSkills = filters.skills?.filter(skill => skill !== skillToRemove) || [];
+    const newSkills = filters.skills?.filter(skill => skill !== skillToRemover) || [];
     updateFilters({ skills: newSkills });
   }, [filters.skills]);
 

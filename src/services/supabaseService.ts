@@ -98,7 +98,13 @@ class SupabaseService {
         throw error;
       }
 
-      return data || [];
+      // Добавляем отсутствующие поля для совместимости с типом User
+      const usersWithDefaults = (data || []).map(user => ({
+        ...user,
+        company: user.company || null,
+      }));
+
+      return usersWithDefaults;
     } catch (error) {
       console.error('Error fetching filtered seekers:', error);
       throw error;

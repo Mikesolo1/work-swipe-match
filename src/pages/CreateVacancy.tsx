@@ -5,19 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, X, Building2 } from 'lucide-react';
+import { ArrowLeft, Plus, X, Building2, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCities } from '@/hooks/useCities';
 import { useJobCategories } from '@/hooks/useJobCategories';
+import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import VideoRecorder from '@/components/VideoRecorder';
+import VideoPlayer from '@/components/VideoPlayer';
 
 const CreateVacancy = () => {
   const { user } = useAuth();
   const { data: cities } = useCities();
   const { data: jobCategories } = useJobCategories();
+  const { uploadVideo, isUploading } = useVideoUpload();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -34,6 +38,8 @@ const CreateVacancy = () => {
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const addSkill = () => {
     if (newSkill.trim() && !formData.skills_required.includes(newSkill.trim())) {
@@ -62,6 +68,23 @@ const CreateVacancy = () => {
     });
   };
 
+  const handleVideoRecorded = async (videoBlob: Blob) => {
+    if (!user) return;
+    
+    try {
+      const uploadedUrl = await uploadVideo(videoBlob, user.id, 'vacancy');
+      if (uploadedUrl) {
+        setVideoUrl(uploadedUrl);
+        toast({
+          title: "Видео загружено",
+          description: "Видео успешно добавлено к вакансии"
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -78,7 +101,8 @@ const CreateVacancy = () => {
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
         team_lead_name: formData.team_lead_name || null,
         team_lead_avatar: formData.team_lead_avatar || null,
-        skills_required: formData.skills_required
+        skills_required: formData.skills_required,
+        video_url: videoUrl
       };
 
       const { error } = await supabase
@@ -112,6 +136,18 @@ const CreateVacancy = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (showVideoRecorder) {
+    return (
+      <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center p-4">
+        <VideoRecorder
+          onVideoRecorded={handleVideoRecorded}
+          onClose={() => setShowVideoRecorder(false)}
+          maxDuration={90}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen matchwork-gradient-bg pb-20">
@@ -223,6 +259,57 @@ const CreateVacancy = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card className="matchwork-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video size={20} />
+                  Видео о вакансии
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {videoUrl ? (
+                  <div className="text-center space-y-3">
+                    <VideoPlayer 
+                      videoUrl={videoUrl} 
+                      size="large" 
+                      showControls={true}
+                      className="mx-auto"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setShowVideoRecorder(true)}
+                      disabled={isUploading}
+                    >
+                      Перезаписать видео
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Добавьте видео-презентацию вакансии (до 90 сек)
+                    </p>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setShowVideoRecorder(true)}
+                      className="flex items-center gap-2"
+                      disabled={isUploading}
+                    >
+                      <Video size={16} />
+                      📹 Записать видео
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             <Card className="matchwork-card">
@@ -327,7 +414,7 @@ const CreateVacancy = () => {
             <Button 
               type="submit"
               className="w-full matchwork-button-primary"
-              disabled={isSubmitting || !formData.title || !formData.description || !formData.city}
+              disabled={isSubmitting || isUploading || !formData.title || !formData.description || !formData.city}
             >
               {isSubmitting ? 'Создание...' : 'Создать вакансию'}
             </Button>

@@ -30,17 +30,11 @@ const VacancyManagement = () => {
   const { data: vacancies = [], isLoading, error } = useVacancies();
   const deleteVacancyMutation = useDeleteVacancy();
 
-  console.log('VacancyManagement - user:', user);
-  console.log('VacancyManagement - vacancies:', vacancies);
-  console.log('VacancyManagement - isLoading:', isLoading);
-  console.log('VacancyManagement - error:', error);
-
   const handleCreateVacancy = () => {
     navigate('/create-vacancy');
   };
 
   const handleEditVacancy = (vacancy: Vacancy) => {
-    // TODO: Implement edit functionality
     toast({
       title: "В разработке",
       description: "Функция редактирования вакансии будет добавлена позже",
@@ -111,10 +105,9 @@ const VacancyManagement = () => {
       <div className="p-4 max-w-md mx-auto">
         {viewMode === 'list' && (
           <>
-            {/* Header */}
             <div className="flex items-center justify-between mb-6 pt-2">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={handleBackToSwipe}>
+                <Button variant="ghost" size="sm" onClick={handleBackToSwipe} className="text-white">
                   <ArrowLeft size={16} />
                 </Button>
                 <div>
@@ -132,7 +125,6 @@ const VacancyManagement = () => {
               </Button>
             </div>
 
-            {/* Vacancies List */}
             {vacancies.length === 0 ? (
               <EmptyState
                 icon="📋"

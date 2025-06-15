@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, MapPin, Briefcase, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabaseService } from '@/services/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
 import type { Tables } from '@/integrations/supabase/types';
@@ -27,19 +27,40 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
     queryKey: ['vacancy-candidates', vacancy.id],
     queryFn: async (): Promise<User[]> => {
       console.log('Fetching candidates for vacancy:', vacancy.id);
-      // Получаем кандидатов, которые подходят для этой вакансии
-      return supabaseService.getSwipeTargets(vacancy.employer_id!, 'employer', {
-        city: vacancy.city,
-        skills: vacancy.skills_required,
-        salaryMin: vacancy.salary_min || undefined,
-        salaryMax: vacancy.salary_max || undefined,
-      }) as Promise<User[]>;
+      
+      // Получаем кандидатов с помощью функции базы данных
+      const { data, error } = await supabase.rpc('get_filtered_seekers_for_employer', {
+        p_user_id: vacancy.employer_id,
+        p_city: vacancy.city,
+        p_skills: vacancy.skills_required || [],
+        p_salary_min: vacancy.salary_min,
+        p_salary_max: vacancy.salary_max,
+        p_has_video: null
+      });
+
+      if (error) {
+        console.error('Error fetching candidates:', error);
+        throw error;
+      }
+
+      // Фильтруем кандидатов, исключая тех, кто уже получил свайп от работодателя
+      const { data: existingSwipes, error: swipesError } = await supabase
+        .from('swipes')
+        .select('target_id')
+        .eq('swiper_id', vacancy.employer_id)
+        .eq('target_type', 'user');
+
+      if (swipesError) {
+        console.error('Error fetching swipes:', swipesError);
+        throw swipesError;
+      }
+
+      const swipedUserIds = new Set(existingSwipes?.map(s => s.target_id) || []);
+      const filteredCandidates = (data || []).filter(candidate => !swipedUserIds.has(candidate.id));
+
+      return filteredCandidates;
     },
   });
-
-  console.log('VacancyCandidates - candidates:', candidates);
-  console.log('VacancyCandidates - isLoading:', isLoading);
-  console.log('VacancyCandidates - error:', error);
 
   if (isLoading) {
     return (

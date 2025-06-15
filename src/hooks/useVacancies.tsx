@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -13,6 +14,11 @@ export const useVacancies = () => {
   return useQuery({
     queryKey: ['vacancies', user?.id],
     queryFn: async (): Promise<Vacancy[]> => {
+      if (!user) {
+        console.log('No user found, returning empty array');
+        return [];
+      }
+
       let query = supabase
         .from('vacancies')
         .select(`
@@ -21,8 +27,11 @@ export const useVacancies = () => {
         `);
 
       // Если пользователь работодатель, показываем только его вакансии
-      if (user?.role === 'employer') {
+      if (user.role === 'employer') {
+        console.log('Filtering vacancies for employer:', user.id);
         query = query.eq('employer_id', user.id);
+      } else {
+        console.log('User is not an employer, showing all vacancies');
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -32,6 +41,7 @@ export const useVacancies = () => {
         throw error;
       }
 
+      console.log('Fetched vacancies:', data?.length || 0);
       return data || [];
     },
     enabled: !!user,

@@ -1,15 +1,25 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Clock, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Clock, MessageCircle, MapPin, Briefcase } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
-import type { Vacancy, Match } from '@/types/entities';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Vacancy = Tables<'vacancies'>;
+type User = Tables<'users'>;
+type Match = Tables<'matches'> & {
+  participant_a_user?: User;
+  participant_b_user?: User;
+  vacancy?: Vacancy;
+  isExpired?: boolean;
+  timeLeft?: number;
+};
 
 interface VacancyMatchesProps {
   vacancy: Vacancy;
@@ -35,7 +45,7 @@ const VacancyMatches: React.FC<VacancyMatchesProps> = ({ vacancy, onBack }) => {
 
       return (data || []).map(match => {
         const now = new Date();
-        const expiresAt = new Date(match.expires_at);
+        const expiresAt = new Date(match.expires_at || new Date());
         const timeLeft = expiresAt.getTime() - now.getTime();
 
         return {
@@ -74,12 +84,12 @@ const VacancyMatches: React.FC<VacancyMatchesProps> = ({ vacancy, onBack }) => {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={onBack}>
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-white">
           <ArrowLeft size={16} />
         </Button>
         <div>
-          <h2 className="text-xl font-semibold">Мэтчи для "{vacancy.title}"</h2>
-          <p className="text-gray-600 text-sm">{matches.length} мэтчей</p>
+          <h2 className="text-xl font-semibold text-white">Мэтчи для "{vacancy.title}"</h2>
+          <p className="text-white/70 text-sm">{matches.length} мэтчей</p>
         </div>
       </div>
 
@@ -99,76 +109,88 @@ const VacancyMatches: React.FC<VacancyMatchesProps> = ({ vacancy, onBack }) => {
             const timeLeft = formatTimeLeft(match.timeLeft || 0);
             const isExpired = match.isExpired || false;
 
+            if (!candidate) return null;
+
             return (
               <Card key={match.id} className={`p-4 ${isExpired ? 'opacity-60' : ''}`}>
-                <div className="flex items-start gap-4">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={candidate?.avatar_url || ''} />
-                    <AvatarFallback>
-                      {candidate?.first_name?.[0]}{candidate?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium">
-                        {candidate?.first_name} {candidate?.last_name}
-                      </h3>
-                      {!isExpired && (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Clock size={14} />
-                          <span>
-                            {timeLeft.hours > 0 && `${timeLeft.hours}ч `}
-                            {timeLeft.minutes}м
-                          </span>
-                        </div>
+                <CardContent className="p-0">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={candidate.avatar_url || ''} />
+                      <AvatarFallback>
+                        {candidate.first_name?.[0]}{candidate.last_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium">
+                          {candidate.first_name} {candidate.last_name}
+                        </h3>
+                        {!isExpired && (
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
+                            <Clock size={14} />
+                            <span>
+                              {timeLeft.hours > 0 && `${timeLeft.hours}ч `}
+                              {timeLeft.minutes}м
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        {candidate.city && (
+                          <div className="flex items-center gap-1">
+                            <MapPin size={14} />
+                            <span>{candidate.city}</span>
+                          </div>
+                        )}
+                        {candidate.salary_expectation && (
+                          <div className="flex items-center gap-1">
+                            <Briefcase size={14} />
+                            <span>от {candidate.salary_expectation}₽</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {candidate.experience && (
+                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                          {candidate.experience}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        {candidate.skills && candidate.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {candidate.skills.slice(0, 3).map((skill, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                            {candidate.skills.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{candidate.skills.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {!isExpired && (
+                          <Button size="sm" className="ml-auto">
+                            <MessageCircle size={14} className="mr-1" />
+                            Написать
+                          </Button>
+                        )}
+                      </div>
+
+                      {isExpired && (
+                        <Badge variant="destructive" className="mt-2">
+                          Мэтч истек
+                        </Badge>
                       )}
                     </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                      {candidate?.city && <span>{candidate.city}</span>}
-                      {candidate?.salary_expectation && (
-                        <span>• от {candidate.salary_expectation}₽</span>
-                      )}
-                    </div>
-
-                    {candidate?.experience && (
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                        {candidate.experience}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      {candidate?.skills && candidate.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {candidate.skills.slice(0, 3).map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {skill}
-                            </Badge>
-                          ))}
-                          {candidate.skills.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{candidate.skills.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {!isExpired && (
-                        <Button size="sm" className="ml-auto">
-                          <MessageCircle size={14} className="mr-1" />
-                          Написать
-                        </Button>
-                      )}
-                    </div>
-
-                    {isExpired && (
-                      <Badge variant="destructive" className="mt-2">
-                        Мэтч истек
-                      </Badge>
-                    )}
                   </div>
-                </div>
+                </CardContent>
               </Card>
             );
           })}

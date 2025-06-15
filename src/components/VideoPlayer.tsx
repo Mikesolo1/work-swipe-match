@@ -31,10 +31,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
     const handleVolumeChange = () => setIsMuted(video.muted);
 
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
     video.addEventListener('volumechange', handleVolumeChange);
 
     // Автоматически запускаем видео при загрузке
@@ -43,6 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => {
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
   }, [videoUrl]);
@@ -70,7 +73,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         className="w-full h-full rounded-full object-cover cursor-pointer"
         src={videoUrl}
         muted={isMuted}
-        loop
         playsInline
         onClick={togglePlay}
       />

@@ -44,7 +44,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.muted = true; // Убираем звук для превью с камеры
+        videoRef.current.muted = true;
       }
       setHasPermission(true);
     } catch (error) {
@@ -63,7 +63,6 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
 
     chunksRef.current = [];
     
-    // Пробуем разные MIME типы для совместимости
     const mimeTypes = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus', 
@@ -104,9 +103,9 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       const blob = new Blob(chunksRef.current, { type: mimeType });
       recordedBlobRef.current = blob;
       const videoUrl = URL.createObjectURL(blob);
-      console.log('Created video URL:', videoUrl);
+      console.log('Created video URL:', videoUrl, 'Blob size:', blob.size);
       
-      // Останавливаем камеру и очищаем поток
+      // Останавливаем камеру
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
           console.log('Stopping track:', track.kind);
@@ -115,24 +114,32 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         streamRef.current = null;
       }
       
-      // Устанавливаем записанное видео
       setRecordedVideo(videoUrl);
       
-      // Переключаем видео элемент на записанное видео
+      // ИСПРАВЛЕНИЕ: Правильно устанавливаем записанное видео
       if (videoRef.current) {
         videoRef.current.srcObject = null;
         videoRef.current.src = videoUrl;
-        videoRef.current.muted = false; // Включаем звук для записи
+        videoRef.current.muted = false;
         videoRef.current.controls = true;
+        videoRef.current.autoplay = false;
+        // Принудительно загружаем видео
         videoRef.current.load();
+        
+        // Ждем загрузки и пытаемся воспроизвести
+        videoRef.current.onloadeddata = () => {
+          console.log('Video loaded, duration:', videoRef.current?.duration);
+          if (videoRef.current && videoRef.current.duration > 0) {
+            videoRef.current.currentTime = 0;
+          }
+        };
       }
     };
     
-    mediaRecorder.start(1000); // Записываем чанками по 1 секунде
+    mediaRecorder.start(1000);
     setIsRecording(true);
     setRecordingTime(0);
     
-    // Таймер для отсчета времени
     timerRef.current = setInterval(() => {
       setRecordingTime(prev => {
         const newTime = prev + 1;
@@ -159,18 +166,19 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
 
   const resetRecording = useCallback(() => {
     console.log('Resetting recording...');
-    setRecordedVideo(null);
-    setRecordingTime(0);
-    recordedBlobRef.current = null;
     
     if (recordedVideo) {
       URL.revokeObjectURL(recordedVideo);
     }
     
-    // Сбрасываем видео элемент
+    setRecordedVideo(null);
+    setRecordingTime(0);
+    recordedBlobRef.current = null;
+    
     if (videoRef.current) {
       videoRef.current.controls = false;
       videoRef.current.src = '';
+      videoRef.current.srcObject = null;
     }
     
     startCamera();
@@ -204,7 +212,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith('video/')) {
-      if (file.size > 100 * 1024 * 1024) { // 100MB limit
+      if (file.size > 100 * 1024 * 1024) {
         toast({
           title: "Файл слишком большой",
           description: "Максимальный размер видео: 100MB",
@@ -235,7 +243,6 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     startCamera();
     
     return () => {
-      // Cleanup
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }

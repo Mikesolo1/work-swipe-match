@@ -2,18 +2,19 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useVideoUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const uploadVideo = async (videoBlob: Blob, userId: string, type: 'resume' | 'vacancy'): Promise<string | null> => {
     setIsUploading(true);
     
     try {
-      // Проверяем аутентификацию пользователя
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Проверяем авторизацию через кастомную систему
+      if (!user) {
         throw new Error('Пользователь не авторизован');
       }
 
@@ -21,9 +22,8 @@ export const useVideoUpload = () => {
       const timestamp = Date.now();
       const fileExtension = videoBlob.type.includes('webm') ? 'webm' : 'mp4';
       const fileName = `${type}_${userId}_${timestamp}.${fileExtension}`;
-      const filePath = `${fileName}`;
 
-      console.log('Uploading video:', filePath, 'Size:', videoBlob.size, 'Type:', videoBlob.type);
+      console.log('Uploading video:', fileName, 'Size:', videoBlob.size, 'Type:', videoBlob.type);
 
       // Проверяем размер файла (максимум 100MB)
       if (videoBlob.size > 100 * 1024 * 1024) {
@@ -35,10 +35,10 @@ export const useVideoUpload = () => {
         throw new Error('Файл видео пустой');
       }
 
-      // Загружаем файл в Supabase Storage с аутентификацией
+      // Загружаем файл в Supabase Storage
       const { data, error } = await supabase.storage
         .from('videos')
-        .upload(filePath, videoBlob, {
+        .upload(fileName, videoBlob, {
           contentType: videoBlob.type,
           upsert: false,
           cacheControl: '3600'
@@ -54,7 +54,7 @@ export const useVideoUpload = () => {
       // Получаем публичный URL
       const { data: urlData } = supabase.storage
         .from('videos')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       console.log('Generated public URL:', urlData.publicUrl);
       return urlData.publicUrl;
@@ -74,9 +74,8 @@ export const useVideoUpload = () => {
 
   const deleteVideo = async (videoUrl: string): Promise<boolean> => {
     try {
-      // Проверяем аутентификацию пользователя
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Проверяем авторизацию через кастомную систему
+      if (!user) {
         console.error('User not authenticated for video deletion');
         return false;
       }

@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,11 +15,24 @@ import NoMoreCards from '@/components/NoMoreCards';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
+import { useSwipeFilters } from '@/hooks/useSwipeFilters';
+import type { SwipeFilters } from '@/types/filters';
 
 const Swipe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const cardRefs = useRef<(TinderCardRef | null)[]>([]);
+  
+  // Add the useSwipeFilters hook
+  const {
+    filters,
+    updateFilters,
+    clearFilters,
+    hasActiveFilters,
+    activeFiltersCount,
+    availableCities,
+    popularSkills,
+  } = useSwipeFilters({ userRole: user?.role });
   
   const {
     currentTarget,
@@ -34,7 +48,7 @@ const Swipe = () => {
     isVacancy,
     targets,
     currentIndex,
-  } = useSwipeOptimized();
+  } = useSwipeOptimized({ filters });
 
   console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error);
 
@@ -60,6 +74,11 @@ const Swipe = () => {
 
   const handleRetry = () => {
     refetchTargets();
+  };
+
+  const handleFiltersChange = (newFilters: SwipeFilters) => {
+    console.log('Filters changed:', newFilters);
+    updateFilters(newFilters);
   };
 
   if (isLoading) {
@@ -107,6 +126,10 @@ const Swipe = () => {
             userRole={user?.role}
             onCreateVacancy={handleCreateVacancy}
             onManageVacancies={handleManageVacancies}
+            onFiltersChange={handleFiltersChange}
+            currentFilters={filters}
+            availableCities={availableCities}
+            popularSkills={popularSkills}
           />
 
           {/* Cards Stack */}

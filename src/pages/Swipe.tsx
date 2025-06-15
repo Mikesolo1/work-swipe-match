@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +17,7 @@ import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
 import { useSwipeFilters } from '@/hooks/useSwipeFilters';
+import type { SwipeFilters } from '@/types/filters';
 
 const Swipe = () => {
   const { user } = useAuth();

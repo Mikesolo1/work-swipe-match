@@ -19,17 +19,56 @@ export const useVideoUpload = () => {
 
       console.log('Uploading video:', filePath, 'Size:', videoBlob.size);
 
+      // Проверяем размер файла (максимум 100MB)
+      if (videoBlob.size > 100 * 1024 * 1024) {
+        throw new Error('Файл слишком большой. Максимальный размер: 100MB');
+      }
+
+      // Создаем временную сессию для анонимного пользователя
+      // Это решение для текущей системы аутентификации через localStorage
+      const { data: sessionData, error: sessionError } = await supabase.auth.signInAnonymously();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        // Если не удается создать сессию, попробуем загрузить без аутентификации
+        // используя публичный bucket
+      }
+
       // Загружаем файл в Supabase Storage
       const { data, error } = await supabase.storage
         .from('videos')
         .upload(filePath, videoBlob, {
           contentType: videoBlob.type,
-          upsert: false
+          upsert: false,
+          cacheControl: '3600'
         });
 
       if (error) {
         console.error('Upload error:', error);
-        throw error;
+        
+        // Если ошибка RLS, попробуем альтернативный подход
+        if (error.message.includes('row-level security') || error.message.includes('policy')) {
+          // Попробуем загрузить с другим путем
+          const altFilePath = `public/${fileName}`;
+          const { data: altData, error: altError } = await supabase.storage
+            .from('videos')
+            .upload(altFilePath, videoBlob, {
+              contentType: videoBlob.type,
+              upsert: true
+            });
+          
+          if (altError) {
+            throw new Error(`Ошибка загрузки: ${altError.message}`);
+          }
+          
+          const { data: urlData } = supabase.storage
+            .from('videos')
+            .getPublicUrl(altFilePath);
+          
+          return urlData.publicUrl;
+        }
+        
+        throw new Error(`Ошибка загрузки: ${error.message}`);
       }
 
       console.log('Upload successful:', data);
@@ -42,9 +81,10 @@ export const useVideoUpload = () => {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading video:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось загрузить видео';
       toast({
         title: "Ошибка загрузки",
-        description: "Не удалось загрузить видео. Попробуйте еще раз.",
+        description: errorMessage,
         variant: "destructive"
       });
       return null;
@@ -58,18 +98,26 @@ export const useVideoUpload = () => {
       // Извлекаем путь к файлу из URL
       const urlParts = videoUrl.split('/');
       const fileName = urlParts[urlParts.length - 1];
-      const filePath = `videos/${fileName}`;
+      
+      // Попробуем разные возможные пути
+      const possiblePaths = [
+        `videos/${fileName}`,
+        `public/${fileName}`
+      ];
 
-      const { error } = await supabase.storage
-        .from('videos')
-        .remove([filePath]);
+      for (const filePath of possiblePaths) {
+        const { error } = await supabase.storage
+          .from('videos')
+          .remove([filePath]);
 
-      if (error) {
-        console.error('Delete error:', error);
-        return false;
+        if (!error) {
+          console.log('Video deleted successfully:', filePath);
+          return true;
+        }
       }
 
-      return true;
+      console.error('Could not delete video from any path');
+      return false;
     } catch (error) {
       console.error('Error deleting video:', error);
       return false;

@@ -26,6 +26,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordedBlobRef = useRef<Blob | null>(null);
   
   const { toast } = useToast();
 
@@ -60,10 +61,33 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     if (!streamRef.current) return;
 
     chunksRef.current = [];
-    const mediaRecorder = new MediaRecorder(streamRef.current, {
-      mimeType: 'video/webm;codecs=vp9'
-    });
     
+    // Пробуем разные MIME типы для совместимости
+    const mimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus', 
+      'video/webm',
+      'video/mp4'
+    ];
+    
+    let mimeType = '';
+    for (const type of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        mimeType = type;
+        break;
+      }
+    }
+    
+    if (!mimeType) {
+      toast({
+        title: "Ошибка записи",
+        description: "Ваш браузер не поддерживает запись видео",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
     
     mediaRecorder.ondataavailable = (event) => {
@@ -73,7 +97,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
     };
     
     mediaRecorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const blob = new Blob(chunksRef.current, { type: mimeType });
+      recordedBlobRef.current = blob;
       const videoUrl = URL.createObjectURL(blob);
       setRecordedVideo(videoUrl);
       
@@ -83,7 +108,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       }
     };
     
-    mediaRecorder.start();
+    mediaRecorder.start(1000); // Записываем чанками по 1 секунде
     setIsRecording(true);
     setRecordingTime(0);
     
@@ -97,7 +122,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         return newTime;
       });
     }, 1000);
-  }, [maxDuration]);
+  }, [maxDuration, toast]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -114,6 +139,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   const resetRecording = useCallback(() => {
     setRecordedVideo(null);
     setRecordingTime(0);
+    recordedBlobRef.current = null;
     if (recordedVideo) {
       URL.revokeObjectURL(recordedVideo);
     }
@@ -121,12 +147,27 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   }, [recordedVideo, startCamera]);
 
   const handleSave = useCallback(async () => {
-    if (!recordedVideo || !chunksRef.current.length) return;
+    if (!recordedBlobRef.current) {
+      toast({
+        title: "Ошибка",
+        description: "Видео не найдено для сохранения",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-    onVideoRecorded(blob);
-    onClose();
-  }, [recordedVideo, onVideoRecorded, onClose]);
+    try {
+      onVideoRecorded(recordedBlobRef.current);
+      onClose();
+    } catch (error) {
+      console.error('Error saving video:', error);
+      toast({
+        title: "Ошибка сохранения",
+        description: "Не удалось сохранить видео",
+        variant: "destructive"
+      });
+    }
+  }, [onVideoRecorded, onClose, toast]);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -142,6 +183,12 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       
       onVideoRecorded(file);
       onClose();
+    } else {
+      toast({
+        title: "Неверный формат файла",
+        description: "Пожалуйста, выберите видео файл",
+        variant: "destructive"
+      });
     }
   }, [onVideoRecorded, onClose, toast]);
 
@@ -214,7 +261,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
           />
           
           {isRecording && (
-            <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-mono">
+            <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-mono flex items-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               REC {formatTime(recordingTime)} / {formatTime(maxDuration)}
             </div>
           )}

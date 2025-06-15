@@ -15,7 +15,26 @@ type Vacancy = Tables<'vacancies'> & {
   employer?: Tables<'users'>;
 };
 
-type User = Tables<'users'>;
+// Тип для кандидата, который возвращает функция базы данных
+type CandidateFromDB = {
+  id: string;
+  telegram_id: number;
+  username: string | null;
+  first_name: string;
+  last_name: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  skills: string[] | null;
+  experience: string | null;
+  achievement: string | null;
+  salary_expectation: number | null;
+  resume_url: string | null;
+  portfolio_url: string | null;
+  video_resume_url: string | null;
+  role: string;
+  created_at: string;
+  updated_at: string;
+};
 
 interface VacancyCandidatesProps {
   vacancy: Vacancy;
@@ -25,12 +44,12 @@ interface VacancyCandidatesProps {
 const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }) => {
   const { data: candidates = [], isLoading, error } = useQuery({
     queryKey: ['vacancy-candidates', vacancy.id],
-    queryFn: async (): Promise<User[]> => {
+    queryFn: async (): Promise<CandidateFromDB[]> => {
       console.log('Fetching candidates for vacancy:', vacancy.id);
       
       // Получаем кандидатов с помощью функции базы данных
       const { data, error } = await supabase.rpc('get_filtered_seekers_for_employer', {
-        p_user_id: vacancy.employer_id,
+        p_user_id: vacancy.employer_id!,
         p_city: vacancy.city,
         p_skills: vacancy.skills_required || [],
         p_salary_min: vacancy.salary_min,
@@ -43,23 +62,10 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
         throw error;
       }
 
-      // Фильтруем кандидатов, исключая тех, кто уже получил свайп от работодателя
-      const { data: existingSwipes, error: swipesError } = await supabase
-        .from('swipes')
-        .select('target_id')
-        .eq('swiper_id', vacancy.employer_id)
-        .eq('target_type', 'user');
-
-      if (swipesError) {
-        console.error('Error fetching swipes:', swipesError);
-        throw swipesError;
-      }
-
-      const swipedUserIds = new Set(existingSwipes?.map(s => s.target_id) || []);
-      const filteredCandidates = (data || []).filter(candidate => !swipedUserIds.has(candidate.id));
-
-      return filteredCandidates;
+      console.log('Fetched candidates:', data?.length || 0);
+      return data || [];
     },
+    enabled: !!vacancy.employer_id,
   });
 
   if (isLoading) {

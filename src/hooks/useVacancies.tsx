@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -14,13 +13,19 @@ export const useVacancies = () => {
   return useQuery({
     queryKey: ['vacancies', user?.id],
     queryFn: async (): Promise<Vacancy[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('vacancies')
         .select(`
           *,
           employer:users!vacancies_employer_id_fkey(*)
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Если пользователь работодатель, показываем только его вакансии
+      if (user?.role === 'employer') {
+        query = query.eq('employer_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching vacancies:', error);
@@ -29,6 +34,7 @@ export const useVacancies = () => {
 
       return data || [];
     },
+    enabled: !!user,
   });
 };
 

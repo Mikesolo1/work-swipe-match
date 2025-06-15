@@ -48,11 +48,16 @@ class SupabaseService {
   // Enhanced swipe operations with filters
   async getSwipeTargets(userId: string, userRole: string, filters?: SwipeFilters): Promise<(User | Vacancy)[]> {
     try {
+      console.log('getSwipeTargets called with:', { userId, userRole, filters });
+      
       if (userRole === 'seeker') {
         return await this.getFilteredVacanciesForSeeker(userId, filters);
-      } else {
+      } else if (userRole === 'employer') {
         return await this.getFilteredSeekersForEmployer(userId, filters);
       }
+      
+      console.warn('Unknown user role:', userRole);
+      return [];
     } catch (error) {
       console.error('Error fetching swipe targets:', error);
       throw error;
@@ -61,6 +66,8 @@ class SupabaseService {
 
   private async getFilteredVacanciesForSeeker(userId: string, filters?: SwipeFilters): Promise<Vacancy[]> {
     try {
+      console.log('Fetching vacancies for seeker:', userId, 'with filters:', filters);
+      
       const { data, error } = await supabase.rpc('get_filtered_vacancies_for_seeker', {
         p_user_id: userId,
         p_city: filters?.city || null,
@@ -75,6 +82,7 @@ class SupabaseService {
         throw error;
       }
 
+      console.log('Found vacancies:', data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Error fetching filtered vacancies:', error);
@@ -84,6 +92,24 @@ class SupabaseService {
 
   private async getFilteredSeekersForEmployer(userId: string, filters?: SwipeFilters): Promise<User[]> {
     try {
+      console.log('Fetching seekers for employer:', userId, 'with filters:', filters);
+      
+      // Сначала проверим, есть ли у работодателя вакансии
+      const { data: employerVacancies, error: vacancyError } = await supabase
+        .from('vacancies')
+        .select('id')
+        .eq('employer_id', userId);
+
+      if (vacancyError) {
+        console.error('Error fetching employer vacancies:', vacancyError);
+        throw vacancyError;
+      }
+
+      if (!employerVacancies || employerVacancies.length === 0) {
+        console.log('Employer has no vacancies, returning empty array');
+        return [];
+      }
+
       const { data, error } = await supabase.rpc('get_filtered_seekers_for_employer', {
         p_user_id: userId,
         p_city: filters?.city || null,
@@ -102,23 +128,15 @@ class SupabaseService {
       const usersWithDefaults = (data || []).map((user: any) => ({
         ...user,
         company: user.company || null,
-        role: user.role as 'seeker' | 'employer', // Приводим к правильному типу
+        role: user.role as 'seeker' | 'employer',
       }));
 
+      console.log('Found seekers:', usersWithDefaults.length);
       return usersWithDefaults;
     } catch (error) {
       console.error('Error fetching filtered seekers:', error);
       throw error;
     }
-  }
-
-  // Legacy methods for backward compatibility
-  private async getVacanciesForSeeker(userId: string): Promise<Vacancy[]> {
-    return this.getFilteredVacanciesForSeeker(userId);
-  }
-
-  private async getSeekersForEmployer(userId: string): Promise<User[]> {
-    return this.getFilteredSeekersForEmployer(userId);
   }
 
   async createSwipe(

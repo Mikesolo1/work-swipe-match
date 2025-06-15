@@ -4,9 +4,14 @@ import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { supabaseService } from '@/services/supabaseService';
 import { useAuth } from './useAuth';
 import type { User, Vacancy, SwipeState, MatchState, SwipeDirection, TargetType } from '@/types/entities';
+import type { SwipeFilters } from '@/types/filters';
 import { useToast } from '@/hooks/use-toast';
 
-export const useSwipeOptimized = () => {
+interface UseSwipeOptimizedProps {
+  filters?: SwipeFilters;
+}
+
+export const useSwipeOptimized = ({ filters }: UseSwipeOptimizedProps = {}) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -22,20 +27,21 @@ export const useSwipeOptimized = () => {
     matchData: null,
   });
 
-  // Fetch swipe targets
+  // Fetch swipe targets with filters
   const {
     data: targets = [],
     isLoading: targetsLoading,
     error: targetsError,
     refetch: refetchTargets,
   } = useQuery({
-    queryKey: ['swipe-targets', user?.id, user?.role],
+    queryKey: ['swipe-targets', user?.id, user?.role, filters],
     queryFn: async () => {
       if (!user) return [];
-      return supabaseService.getSwipeTargets(user.id, user.role);
+      console.log('Fetching targets for user:', user.role, 'with filters:', filters);
+      return supabaseService.getSwipeTargets(user.id, user.role, filters);
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 
   // Update local state when targets change

@@ -18,7 +18,6 @@ import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
 import { useSwipeFilters } from '@/hooks/useSwipeFilters';
-import type { SwipeFilters } from '@/types/filters';
 
 const Swipe = () => {
   const { user } = useAuth();
@@ -37,6 +36,7 @@ const Swipe = () => {
     popularSkills,
   } = useSwipeFilters({ userRole: user?.role });
   
+  // Передаем фильтры в useSwipeOptimized
   const {
     currentTarget,
     remainingCount,
@@ -51,7 +51,7 @@ const Swipe = () => {
     isVacancy,
     targets,
     currentIndex,
-  } = useSwipeOptimized(); // Удаляем передачу фильтров, пока хук не обновлен
+  } = useSwipeOptimized({ filters });
 
   console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error, 'filters:', filters);
 
@@ -131,6 +131,8 @@ const Swipe = () => {
             onManageVacancies={handleManageVacancies}
             onFiltersChange={handleFiltersChange}
             currentFilters={filters}
+            availableCities={availableCities}
+            popularSkills={popularSkills}
           />
 
           {/* Cards Stack */}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, X, Building2, Video } from 'lucide-react';
+import { ArrowLeft, Plus, X, Building2, Video, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,8 +32,8 @@ const CreateVacancy = () => {
     city: '',
     salary_min: '',
     salary_max: '',
-    team_lead_name: '',
-    team_lead_avatar: '',
+    recruiter_name: '',
+    recruiter_telegram: '',
     skills_required: [] as string[]
   });
   const [newSkill, setNewSkill] = useState('');
@@ -99,11 +100,13 @@ const CreateVacancy = () => {
         employer_id: user.id,
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
-        team_lead_name: formData.team_lead_name || null,
-        team_lead_avatar: formData.team_lead_avatar || null,
+        team_lead_name: formData.recruiter_name || null,
+        team_lead_avatar: formData.recruiter_telegram || null,
         skills_required: formData.skills_required,
         video_url: videoUrl
       };
+
+      console.log('Submitting vacancy data:', vacancyData);
 
       const { error } = await supabase
         .from('vacancies')
@@ -124,7 +127,7 @@ const CreateVacancy = () => {
         description: "Вакансия создана и доступна для просмотра соискателями."
       });
 
-      navigate('/swipe');
+      navigate('/vacancy-management');
     } catch (error) {
       console.error('Error creating vacancy:', error);
       toast({
@@ -314,27 +317,30 @@ const CreateVacancy = () => {
           >
             <Card className="matchwork-card">
               <CardHeader>
-                <CardTitle>Тимлид (опционально)</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <User size={20} />
+                  Контакты рекрутера (опционально)
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-matchwork-text mb-1">
-                    Имя тимлида
+                    ФИО рекрутера
                   </label>
                   <Input
                     placeholder="Анна Иванова"
-                    value={formData.team_lead_name}
-                    onChange={(e) => setFormData({...formData, team_lead_name: e.target.value})}
+                    value={formData.recruiter_name}
+                    onChange={(e) => setFormData({...formData, recruiter_name: e.target.value})}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-matchwork-text mb-1">
-                    Аватар тимлида (URL)
+                    Telegram рекрутера
                   </label>
                   <Input
-                    placeholder="https://example.com/avatar.jpg"
-                    value={formData.team_lead_avatar}
-                    onChange={(e) => setFormData({...formData, team_lead_avatar: e.target.value})}
+                    placeholder="@recruiter_anna"
+                    value={formData.recruiter_telegram}
+                    onChange={(e) => setFormData({...formData, recruiter_telegram: e.target.value})}
                   />
                 </div>
               </CardContent>

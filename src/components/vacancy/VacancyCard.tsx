@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye, Users } from 'lucide-react';
+import { Edit, Trash2, Eye, Users, User } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Vacancy = Tables<'vacancies'> & {
@@ -38,6 +38,19 @@ const VacancyCard: React.FC<VacancyCardProps> = ({
       </CardHeader>
       <CardContent>
         <p className="text-gray-700 mb-3 line-clamp-2">{vacancy.description}</p>
+        
+        {vacancy.team_lead_name && (
+          <div className="mb-3 p-2 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2 text-sm">
+              <User size={14} />
+              <span className="font-medium">Рекрутер:</span>
+              <span>{vacancy.team_lead_name}</span>
+              {vacancy.team_lead_avatar && (
+                <span className="text-blue-600">{vacancy.team_lead_avatar}</span>
+              )}
+            </div>
+          </div>
+        )}
         
         {vacancy.skills_required && vacancy.skills_required.length > 0 && (
           <div className="mb-3">

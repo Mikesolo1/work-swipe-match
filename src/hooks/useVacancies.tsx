@@ -19,6 +19,8 @@ export const useVacancies = () => {
         return [];
       }
 
+      console.log('Fetching vacancies for user:', user.id, 'role:', user.role);
+
       let query = supabase
         .from('vacancies')
         .select(`
@@ -31,7 +33,8 @@ export const useVacancies = () => {
         console.log('Filtering vacancies for employer:', user.id);
         query = query.eq('employer_id', user.id);
       } else {
-        console.log('User is not an employer, showing all vacancies');
+        console.log('User is not an employer, showing all active vacancies');
+        // Для соискателей показываем все вакансии, исключая те, на которые они уже свайпали
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -41,7 +44,7 @@ export const useVacancies = () => {
         throw error;
       }
 
-      console.log('Fetched vacancies:', data?.length || 0);
+      console.log('Fetched vacancies:', data?.length || 0, data);
       return data || [];
     },
     enabled: !!user,
@@ -55,6 +58,8 @@ export const useCreateVacancy = () => {
   return useMutation({
     mutationFn: async (vacancyData: Omit<TablesInsert<'vacancies'>, 'employer_id'>) => {
       if (!user) throw new Error('User not authenticated');
+
+      console.log('Creating vacancy with data:', vacancyData);
 
       const { data, error } = await supabase
         .from('vacancies')
@@ -70,6 +75,7 @@ export const useCreateVacancy = () => {
         throw error;
       }
 
+      console.log('Created vacancy:', data);
       return data;
     },
     onSuccess: () => {

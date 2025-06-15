@@ -11,11 +11,17 @@ export const useVideoUpload = () => {
     setIsUploading(true);
     
     try {
+      // Проверяем аутентификацию пользователя
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Пользователь не авторизован');
+      }
+
       // Создаем уникальное имя файла
       const timestamp = Date.now();
       const fileExtension = videoBlob.type.includes('webm') ? 'webm' : 'mp4';
       const fileName = `${type}_${userId}_${timestamp}.${fileExtension}`;
-      const filePath = `videos/${fileName}`;
+      const filePath = `${fileName}`;
 
       console.log('Uploading video:', filePath, 'Size:', videoBlob.size, 'Type:', videoBlob.type);
 
@@ -29,7 +35,7 @@ export const useVideoUpload = () => {
         throw new Error('Файл видео пустой');
       }
 
-      // Загружаем файл в Supabase Storage
+      // Загружаем файл в Supabase Storage с аутентификацией
       const { data, error } = await supabase.storage
         .from('videos')
         .upload(filePath, videoBlob, {
@@ -40,34 +46,6 @@ export const useVideoUpload = () => {
 
       if (error) {
         console.error('Upload error:', error);
-        
-        // Если ошибка связана с аутентификацией, попробуем публичную загрузку
-        if (error.message.includes('JWT') || error.message.includes('auth') || error.message.includes('policy')) {
-          console.log('Trying public upload approach...');
-          
-          // Попробуем загрузить в публичную папку
-          const publicFilePath = `public/${fileName}`;
-          const { data: publicData, error: publicError } = await supabase.storage
-            .from('videos')
-            .upload(publicFilePath, videoBlob, {
-              contentType: videoBlob.type,
-              upsert: true
-            });
-          
-          if (publicError) {
-            console.error('Public upload error:', publicError);
-            throw new Error(`Ошибка загрузки: ${publicError.message}`);
-          }
-          
-          console.log('Public upload successful:', publicData);
-          
-          const { data: urlData } = supabase.storage
-            .from('videos')
-            .getPublicUrl(publicFilePath);
-          
-          return urlData.publicUrl;
-        }
-        
         throw new Error(`Ошибка загрузки: ${error.message}`);
       }
 
@@ -96,29 +74,28 @@ export const useVideoUpload = () => {
 
   const deleteVideo = async (videoUrl: string): Promise<boolean> => {
     try {
+      // Проверяем аутентификацию пользователя
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('User not authenticated for video deletion');
+        return false;
+      }
+
       // Извлекаем путь к файлу из URL
       const urlParts = videoUrl.split('/');
       const fileName = urlParts[urlParts.length - 1];
-      
-      // Попробуем разные возможные пути
-      const possiblePaths = [
-        `videos/${fileName}`,
-        `public/${fileName}`
-      ];
 
-      for (const filePath of possiblePaths) {
-        const { error } = await supabase.storage
-          .from('videos')
-          .remove([filePath]);
+      const { error } = await supabase.storage
+        .from('videos')
+        .remove([fileName]);
 
-        if (!error) {
-          console.log('Video deleted successfully:', filePath);
-          return true;
-        }
+      if (error) {
+        console.error('Error deleting video:', error);
+        return false;
       }
 
-      console.error('Could not delete video from any path');
-      return false;
+      console.log('Video deleted successfully:', fileName);
+      return true;
     } catch (error) {
       console.error('Error deleting video:', error);
       return false;

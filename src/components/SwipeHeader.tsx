@@ -11,7 +11,7 @@ interface SwipeHeaderProps {
   userRole?: string;
   onCreateVacancy: () => void;
   onManageVacancies: () => void;
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange?: (filters: any) => void;
   currentFilters?: any;
 }
 
@@ -24,6 +24,12 @@ const SwipeHeader: React.FC<SwipeHeaderProps> = ({
   currentFilters
 }) => {
   const { startOnboarding } = useOnboarding();
+
+  const handleFiltersChange = (filters: any) => {
+    if (onFiltersChange) {
+      onFiltersChange(filters);
+    }
+  };
 
   return (
     <motion.div 
@@ -39,11 +45,13 @@ const SwipeHeader: React.FC<SwipeHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
-        <SwipeFilters 
-          userRole={userRole}
-          onFiltersChange={onFiltersChange}
-          initialFilters={currentFilters}
-        />
+        {onFiltersChange && (
+          <SwipeFilters 
+            userRole={userRole}
+            onFiltersChange={handleFiltersChange}
+            initialFilters={currentFilters}
+          />
+        )}
 
         <Button
           variant="outline"

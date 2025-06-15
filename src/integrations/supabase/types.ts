@@ -159,7 +159,6 @@ export type Database = {
           telegram_id: number
           updated_at: string | null
           username: string | null
-          video_resume_url: string | null
         }
         Insert: {
           achievement?: string | null
@@ -179,7 +178,6 @@ export type Database = {
           telegram_id: number
           updated_at?: string | null
           username?: string | null
-          video_resume_url?: string | null
         }
         Update: {
           achievement?: string | null
@@ -199,7 +197,6 @@ export type Database = {
           telegram_id?: number
           updated_at?: string | null
           username?: string | null
-          video_resume_url?: string | null
         }
         Relationships: []
       }
@@ -217,7 +214,6 @@ export type Database = {
           team_lead_name: string | null
           title: string
           updated_at: string | null
-          video_url: string | null
         }
         Insert: {
           city: string
@@ -232,7 +228,6 @@ export type Database = {
           team_lead_name?: string | null
           title: string
           updated_at?: string | null
-          video_url?: string | null
         }
         Update: {
           city?: string
@@ -247,7 +242,6 @@ export type Database = {
           team_lead_name?: string | null
           title?: string
           updated_at?: string | null
-          video_url?: string | null
         }
         Relationships: [
           {

@@ -4,19 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Plus, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import SwipeFilters from './SwipeFilters';
 
 interface SwipeHeaderProps {
   remainingCount: number;
   userRole?: string;
   onCreateVacancy: () => void;
   onManageVacancies: () => void;
+  onFiltersChange: (filters: any) => void;
+  currentFilters?: any;
 }
 
 const SwipeHeader: React.FC<SwipeHeaderProps> = ({
   remainingCount,
   userRole,
   onCreateVacancy,
-  onManageVacancies
+  onManageVacancies,
+  onFiltersChange,
+  currentFilters
 }) => {
   const { startOnboarding } = useOnboarding();
 
@@ -34,6 +39,12 @@ const SwipeHeader: React.FC<SwipeHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
+        <SwipeFilters 
+          userRole={userRole}
+          onFiltersChange={onFiltersChange}
+          initialFilters={currentFilters}
+        />
+
         <Button
           variant="outline"
           size="sm"

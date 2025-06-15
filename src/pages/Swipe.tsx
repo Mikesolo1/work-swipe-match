@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +23,7 @@ const Swipe = () => {
   const navigate = useNavigate();
   const cardRefs = useRef<(TinderCardRef | null)[]>([]);
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const [filters, setFilters] = useState({});
   
   const {
     currentTarget,
@@ -64,6 +65,12 @@ const Swipe = () => {
 
   const handleRetry = () => {
     refetchTargets();
+  };
+
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    // TODO: Implement filtering logic in useSwipeOptimized hook
+    console.log('Filters changed:', newFilters);
   };
 
   if (isLoading) {
@@ -111,6 +118,8 @@ const Swipe = () => {
             userRole={user?.role}
             onCreateVacancy={handleCreateVacancy}
             onManageVacancies={handleManageVacancies}
+            onFiltersChange={handleFiltersChange}
+            currentFilters={filters}
           />
 
           {/* Cards Stack */}
@@ -129,7 +138,7 @@ const Swipe = () => {
                     }}
                     preventSwipe={actualIndex !== currentIndex ? ['up', 'down', 'left', 'right'] : ['up', 'down']}
                   >
-                    <Card className="h-full matchwork-card overflow-hidden" style={{ zIndex: 10 - index }}>
+                    <Card className="h-full matchwork-card overflow-hidden shadow-xl border-0" style={{ zIndex: 10 - index }}>
                       <SwipeCardContent target={target} isVacancy={isVacancy} />
                     </Card>
                   </TinderCardWrapper>

@@ -17,21 +17,16 @@ export const useVideoUpload = () => {
       const fileName = `${type}_${userId}_${timestamp}.${fileExtension}`;
       const filePath = `videos/${fileName}`;
 
-      console.log('Uploading video:', filePath, 'Size:', videoBlob.size);
+      console.log('Uploading video:', filePath, 'Size:', videoBlob.size, 'Type:', videoBlob.type);
 
       // Проверяем размер файла (максимум 100MB)
       if (videoBlob.size > 100 * 1024 * 1024) {
         throw new Error('Файл слишком большой. Максимальный размер: 100MB');
       }
 
-      // Создаем временную сессию для анонимного пользователя
-      // Это решение для текущей системы аутентификации через localStorage
-      const { data: sessionData, error: sessionError } = await supabase.auth.signInAnonymously();
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        // Если не удается создать сессию, попробуем загрузить без аутентификации
-        // используя публичный bucket
+      // Проверяем, что файл не пустой
+      if (videoBlob.size === 0) {
+        throw new Error('Файл видео пустой');
       }
 
       // Загружаем файл в Supabase Storage
@@ -46,24 +41,29 @@ export const useVideoUpload = () => {
       if (error) {
         console.error('Upload error:', error);
         
-        // Если ошибка RLS, попробуем альтернативный подход
-        if (error.message.includes('row-level security') || error.message.includes('policy')) {
-          // Попробуем загрузить с другим путем
-          const altFilePath = `public/${fileName}`;
-          const { data: altData, error: altError } = await supabase.storage
+        // Если ошибка связана с аутентификацией, попробуем публичную загрузку
+        if (error.message.includes('JWT') || error.message.includes('auth') || error.message.includes('policy')) {
+          console.log('Trying public upload approach...');
+          
+          // Попробуем загрузить в публичную папку
+          const publicFilePath = `public/${fileName}`;
+          const { data: publicData, error: publicError } = await supabase.storage
             .from('videos')
-            .upload(altFilePath, videoBlob, {
+            .upload(publicFilePath, videoBlob, {
               contentType: videoBlob.type,
               upsert: true
             });
           
-          if (altError) {
-            throw new Error(`Ошибка загрузки: ${altError.message}`);
+          if (publicError) {
+            console.error('Public upload error:', publicError);
+            throw new Error(`Ошибка загрузки: ${publicError.message}`);
           }
+          
+          console.log('Public upload successful:', publicData);
           
           const { data: urlData } = supabase.storage
             .from('videos')
-            .getPublicUrl(altFilePath);
+            .getPublicUrl(publicFilePath);
           
           return urlData.publicUrl;
         }
@@ -78,6 +78,7 @@ export const useVideoUpload = () => {
         .from('videos')
         .getPublicUrl(filePath);
 
+      console.log('Generated public URL:', urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading video:', error);

@@ -44,6 +44,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.muted = true; // Убираем звук для превью с камеры
       }
       setHasPermission(true);
     } catch (error) {
@@ -87,24 +88,43 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       return;
     }
 
+    console.log('Starting recording with MIME type:', mimeType);
     const mediaRecorder = new MediaRecorder(streamRef.current, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
     
     mediaRecorder.ondataavailable = (event) => {
+      console.log('Data available:', event.data.size);
       if (event.data.size > 0) {
         chunksRef.current.push(event.data);
       }
     };
     
     mediaRecorder.onstop = () => {
+      console.log('Recording stopped, creating blob from', chunksRef.current.length, 'chunks');
       const blob = new Blob(chunksRef.current, { type: mimeType });
       recordedBlobRef.current = blob;
       const videoUrl = URL.createObjectURL(blob);
+      console.log('Created video URL:', videoUrl);
+      
+      // Останавливаем камеру и очищаем поток
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          console.log('Stopping track:', track.kind);
+          track.stop();
+        });
+        streamRef.current = null;
+      }
+      
+      // Устанавливаем записанное видео
       setRecordedVideo(videoUrl);
       
-      // Останавливаем камеру
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+      // Переключаем видео элемент на записанное видео
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.src = videoUrl;
+        videoRef.current.muted = false; // Включаем звук для записи
+        videoRef.current.controls = true;
+        videoRef.current.load();
       }
     };
     
@@ -126,6 +146,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
+      console.log('Stopping recording...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
@@ -137,12 +158,21 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   }, [isRecording]);
 
   const resetRecording = useCallback(() => {
+    console.log('Resetting recording...');
     setRecordedVideo(null);
     setRecordingTime(0);
     recordedBlobRef.current = null;
+    
     if (recordedVideo) {
       URL.revokeObjectURL(recordedVideo);
     }
+    
+    // Сбрасываем видео элемент
+    if (videoRef.current) {
+      videoRef.current.controls = false;
+      videoRef.current.src = '';
+    }
+    
     startCamera();
   }, [recordedVideo, startCamera]);
 
@@ -155,6 +185,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       });
       return;
     }
+    
+    console.log('Saving video blob:', recordedBlobRef.current.size, 'bytes');
     
     try {
       onVideoRecorded(recordedBlobRef.current);
@@ -181,6 +213,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         return;
       }
       
+      console.log('File selected:', file.name, file.size, 'bytes');
       onVideoRecorded(file);
       onClose();
     } else {
@@ -256,7 +289,6 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
             autoPlay={!recordedVideo}
             muted={!recordedVideo}
             playsInline
-            src={recordedVideo || undefined}
             controls={!!recordedVideo}
           />
           

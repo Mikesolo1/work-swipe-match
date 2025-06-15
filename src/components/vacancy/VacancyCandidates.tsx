@@ -9,7 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabaseService } from '@/services/supabaseService';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
-import type { Vacancy, User } from '@/types/entities';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Vacancy = Tables<'vacancies'> & {
+  employer?: Tables<'users'>;
+};
+
+type User = Tables<'users'>;
 
 interface VacancyCandidatesProps {
   vacancy: Vacancy;
@@ -20,6 +26,7 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
   const { data: candidates = [], isLoading, error } = useQuery({
     queryKey: ['vacancy-candidates', vacancy.id],
     queryFn: async (): Promise<User[]> => {
+      console.log('Fetching candidates for vacancy:', vacancy.id);
       // Получаем кандидатов, которые подходят для этой вакансии
       return supabaseService.getSwipeTargets(vacancy.employer_id!, 'employer', {
         city: vacancy.city,
@@ -30,6 +37,10 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
     },
   });
 
+  console.log('VacancyCandidates - candidates:', candidates);
+  console.log('VacancyCandidates - isLoading:', isLoading);
+  console.log('VacancyCandidates - error:', error);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -39,6 +50,7 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
   }
 
   if (error) {
+    console.error('VacancyCandidates error:', error);
     return (
       <EmptyState
         icon="❌"
@@ -51,12 +63,12 @@ const VacancyCandidates: React.FC<VacancyCandidatesProps> = ({ vacancy, onBack }
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={onBack}>
+        <Button variant="ghost" size="sm" onClick={onBack} className="text-white">
           <ArrowLeft size={16} />
         </Button>
         <div>
-          <h2 className="text-xl font-semibold">Кандидаты для "{vacancy.title}"</h2>
-          <p className="text-gray-600 text-sm">{candidates.length} подходящих кандидатов</p>
+          <h2 className="text-xl font-semibold text-white">Кандидаты для "{vacancy.title}"</h2>
+          <p className="text-white/70 text-sm">{candidates.length} подходящих кандидатов</p>
         </div>
       </div>
 

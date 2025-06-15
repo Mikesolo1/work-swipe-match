@@ -12,7 +12,11 @@ import VacancyCard from '@/components/vacancy/VacancyCard';
 import VacancyCandidates from '@/components/vacancy/VacancyCandidates';
 import VacancyMatches from '@/components/vacancy/VacancyMatches';
 import { useToast } from '@/hooks/use-toast';
-import type { Vacancy } from '@/types/entities';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Vacancy = Tables<'vacancies'> & {
+  employer?: Tables<'users'>;
+};
 
 type ViewMode = 'list' | 'candidates' | 'matches';
 
@@ -26,8 +30,10 @@ const VacancyManagement = () => {
   const { data: vacancies = [], isLoading, error } = useVacancies();
   const deleteVacancyMutation = useDeleteVacancy();
 
-  // Фильтруем только вакансии текущего пользователя
-  const userVacancies = vacancies.filter(vacancy => vacancy.employer_id === user?.id);
+  console.log('VacancyManagement - user:', user);
+  console.log('VacancyManagement - vacancies:', vacancies);
+  console.log('VacancyManagement - isLoading:', isLoading);
+  console.log('VacancyManagement - error:', error);
 
   const handleCreateVacancy = () => {
     navigate('/create-vacancy');
@@ -50,6 +56,7 @@ const VacancyManagement = () => {
           description: "Вакансия удалена",
         });
       } catch (error) {
+        console.error('Error deleting vacancy:', error);
         toast({
           title: "Ошибка",
           description: "Не удалось удалить вакансию",
@@ -87,6 +94,7 @@ const VacancyManagement = () => {
   }
 
   if (error) {
+    console.error('VacancyManagement error:', error);
     return (
       <div className="min-h-screen matchwork-gradient-bg flex items-center justify-center">
         <EmptyState
@@ -111,7 +119,7 @@ const VacancyManagement = () => {
                 </Button>
                 <div>
                   <h1 className="text-xl font-semibold text-white">Мои вакансии</h1>
-                  <p className="text-white/70 text-sm">{userVacancies.length} вакансий</p>
+                  <p className="text-white/70 text-sm">{vacancies.length} вакансий</p>
                 </div>
               </div>
               <Button
@@ -125,7 +133,7 @@ const VacancyManagement = () => {
             </div>
 
             {/* Vacancies List */}
-            {userVacancies.length === 0 ? (
+            {vacancies.length === 0 ? (
               <EmptyState
                 icon="📋"
                 title="Нет вакансий"
@@ -135,7 +143,7 @@ const VacancyManagement = () => {
               />
             ) : (
               <div className="space-y-4">
-                {userVacancies.map((vacancy) => (
+                {vacancies.map((vacancy) => (
                   <VacancyCard
                     key={vacancy.id}
                     vacancy={vacancy}

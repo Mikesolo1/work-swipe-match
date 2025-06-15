@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Eye, Users } from 'lucide-react';
-import type { Vacancy } from '@/types/entities';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Vacancy = Tables<'vacancies'> & {
+  employer?: Tables<'users'>;
+};
 
 interface VacancyCardProps {
   vacancy: Vacancy;

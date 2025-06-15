@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -60,7 +59,7 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
   }, [filters.skills]);
 
   const handleRemoveSkill = useCallback((skillToRemove: string) => {
-    const newSkills = filters.skills?.filter(skill => skill !== skillToRemover) || [];
+    const newSkills = filters.skills?.filter(skill => skill !== skillToRemove) || [];
     updateFilters({ skills: newSkills });
   }, [filters.skills]);
 

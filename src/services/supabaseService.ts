@@ -99,9 +99,10 @@ class SupabaseService {
       }
 
       // Добавляем отсутствующие поля для совместимости с типом User
-      const usersWithDefaults = (data || []).map(user => ({
+      const usersWithDefaults = (data || []).map((user: any) => ({
         ...user,
         company: user.company || null,
+        role: user.role as 'seeker' | 'employer', // Приводим к правильному типу
       }));
 
       return usersWithDefaults;
@@ -284,7 +285,7 @@ class SupabaseService {
       }, {} as Record<string, number>);
 
       return Object.entries(skillCounts)
-        .sort((a, b) => b[1] - a[1])
+        .sort(([, a], [, b]) => Number(b) - Number(a))
         .slice(0, 20)
         .map(([skill]) => skill);
     } catch (error) {

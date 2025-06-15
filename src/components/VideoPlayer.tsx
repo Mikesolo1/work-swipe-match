@@ -1,6 +1,6 @@
 
-import React, { useRef, useState } from 'react';
-import { Play, Volume2, VolumeX } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -16,7 +16,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   showControls = false 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
   const sizeClasses = {
@@ -25,6 +25,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     large: 'w-32 h-32'
   };
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleVolumeChange = () => setIsMuted(video.muted);
+
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('volumechange', handleVolumeChange);
+
+    // Автоматически запускаем видео при загрузке
+    video.play().catch(console.error);
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('volumechange', handleVolumeChange);
+    };
+  }, [videoUrl]);
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -32,14 +54,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       } else {
         videoRef.current.play();
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
   const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
     }
   };
 
@@ -49,17 +69,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         ref={videoRef}
         className="w-full h-full rounded-full object-cover cursor-pointer"
         src={videoUrl}
-        autoPlay
         muted={isMuted}
         loop
         playsInline
         onClick={togglePlay}
-        onLoadedData={() => {
-          // Автоматически воспроизводить видео при загрузке
-          if (videoRef.current) {
-            videoRef.current.play().catch(console.error);
-          }
-        }}
       />
       
       {showControls && (
@@ -72,7 +85,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               }}
               className="bg-black/50 text-white p-1 rounded-full hover:bg-black/70 transition-colors"
             >
-              <Play size={size === 'small' ? 12 : 16} />
+              {isPlaying ? (
+                <Pause size={size === 'small' ? 12 : 16} />
+              ) : (
+                <Play size={size === 'small' ? 12 : 16} />
+              )}
             </button>
             <button
               onClick={(e) => {
@@ -92,7 +109,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       )}
       
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-black/50 text-white p-2 rounded-full">
             <Play size={size === 'small' ? 16 : 24} />
           </div>

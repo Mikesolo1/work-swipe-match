@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -8,74 +8,79 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Filter, X, MapPin, DollarSign, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
+import type { SwipeFilters } from '@/types/filters';
 
 interface SwipeFiltersProps {
   userRole?: string;
-  onFiltersChange: (filters: any) => void;
-  initialFilters?: any;
+  onFiltersChange: (filters: SwipeFilters) => void;
+  initialFilters?: SwipeFilters;
+  availableCities?: string[];
+  popularSkills?: string[];
 }
 
 const SwipeFilters: React.FC<SwipeFiltersProps> = ({ 
   userRole, 
   onFiltersChange, 
-  initialFilters = {} 
+  initialFilters = {},
+  availableCities = [],
+  popularSkills = []
 }) => {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<SwipeFilters>({
     city: initialFilters.city || '',
     skills: initialFilters.skills || [],
     salaryMin: initialFilters.salaryMin || 0,
     salaryMax: initialFilters.salaryMax || 500000,
     hasVideo: initialFilters.hasVideo || false,
-    experience: initialFilters.experience || '',
-    ...initialFilters
   });
   
   const [skillInput, setSkillInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  const cities = [
+  const defaultCities = [
     'Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 
     'Нижний Новгород', 'Казань', 'Челябинск', 'Омск', 'Самара', 'Ростов-на-Дону'
   ];
 
-  const popularSkills = [
+  const defaultSkills = [
     'JavaScript', 'React', 'Python', 'Java', 'Node.js', 'TypeScript',
     'Vue.js', 'Angular', 'PHP', 'C#', 'SQL', 'MongoDB', 'Docker',
     'Kubernetes', 'AWS', 'Git', 'HTML/CSS', 'Redux', 'GraphQL', 'REST API'
   ];
 
-  const handleAddSkill = (skill: string) => {
-    if (skill && !filters.skills.includes(skill)) {
-      const newSkills = [...filters.skills, skill];
+  // Используем переданные данные или значения по умолчанию
+  const citiesToShow = availableCities.length > 0 ? availableCities.slice(0, 10) : defaultCities;
+  const skillsToShow = popularSkills.length > 0 ? popularSkills.slice(0, 10) : defaultSkills.slice(0, 10);
+
+  const handleAddSkill = useCallback((skill: string) => {
+    if (skill && !filters.skills?.includes(skill)) {
+      const newSkills = [...(filters.skills || []), skill];
       updateFilters({ skills: newSkills });
     }
     setSkillInput('');
-  };
+  }, [filters.skills]);
 
-  const handleRemoveSkill = (skillToRemove: string) => {
-    const newSkills = filters.skills.filter((skill: string) => skill !== skillToRemove);
+  const handleRemoveSkill = useCallback((skillToRemove: string) => {
+    const newSkills = filters.skills?.filter(skill => skill !== skillToRemove) || [];
     updateFilters({ skills: newSkills });
-  };
+  }, [filters.skills]);
 
-  const updateFilters = (newFilters: any) => {
+  const updateFilters = useCallback((newFilters: Partial<SwipeFilters>) => {
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
     onFiltersChange(updatedFilters);
-  };
+  }, [filters, onFiltersChange]);
 
-  const clearFilters = () => {
-    const emptyFilters = {
+  const clearFilters = useCallback(() => {
+    const emptyFilters: SwipeFilters = {
       city: '',
       skills: [],
       salaryMin: 0,
       salaryMax: 500000,
-      hasVideo: false,
-      experience: ''
+      hasVideo: false
     };
     setFilters(emptyFilters);
     onFiltersChange(emptyFilters);
-  };
+  }, [onFiltersChange]);
 
   const activeFiltersCount = Object.values(filters).filter(value => {
     if (Array.isArray(value)) return value.length > 0;
@@ -126,7 +131,7 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
               Город
             </Label>
             <div className="flex flex-wrap gap-2">
-              {cities.map(city => (
+              {citiesToShow.map(city => (
                 <button
                   key={city}
                   onClick={() => updateFilters({ 
@@ -152,7 +157,7 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
             </Label>
             <div className="space-y-4">
               <Slider
-                value={[filters.salaryMin, filters.salaryMax]}
+                value={[filters.salaryMin || 0, filters.salaryMax || 500000]}
                 onValueChange={([min, max]) => updateFilters({ salaryMin: min, salaryMax: max })}
                 max={500000}
                 min={0}
@@ -160,8 +165,8 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-gray-600">
-                <span>{filters.salaryMin.toLocaleString()} ₽</span>
-                <span>{filters.salaryMax.toLocaleString()} ₽</span>
+                <span>{(filters.salaryMin || 0).toLocaleString()} ₽</span>
+                <span>{(filters.salaryMax || 500000).toLocaleString()} ₽</span>
               </div>
             </div>
           </div>
@@ -192,23 +197,23 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {popularSkills.slice(0, 10).map(skill => (
+                {skillsToShow.map(skill => (
                   <button
                     key={skill}
                     onClick={() => handleAddSkill(skill)}
                     className={`px-2 py-1 rounded text-xs transition-colors ${
-                      filters.skills.includes(skill)
+                      filters.skills?.includes(skill)
                         ? 'bg-blue-100 text-blue-700 cursor-not-allowed'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
-                    disabled={filters.skills.includes(skill)}
+                    disabled={filters.skills?.includes(skill)}
                   >
                     {skill}
                   </button>
                 ))}
               </div>
 
-              {filters.skills.length > 0 && (
+              {filters.skills && filters.skills.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-gray-600">Выбранные навыки:</p>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +243,7 @@ const SwipeFilters: React.FC<SwipeFiltersProps> = ({
               </span>
             </div>
             <Switch
-              checked={filters.hasVideo}
+              checked={filters.hasVideo || false}
               onCheckedChange={(checked) => updateFilters({ hasVideo: checked })}
             />
           </div>

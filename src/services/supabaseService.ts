@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Vacancy, Match, Swipe, SwipeDirection, TargetType } from '@/types/entities';
+import type { SwipeFilters } from '@/types/filters';
 
 class SupabaseService {
   // User operations
@@ -44,13 +45,13 @@ class SupabaseService {
     }
   }
 
-  // Swipe operations
-  async getSwipeTargets(userId: string, userRole: string): Promise<(User | Vacancy)[]> {
+  // Enhanced swipe operations with filters
+  async getSwipeTargets(userId: string, userRole: string, filters?: SwipeFilters): Promise<(User | Vacancy)[]> {
     try {
       if (userRole === 'seeker') {
-        return await this.getVacanciesForSeeker(userId);
+        return await this.getFilteredVacanciesForSeeker(userId, filters);
       } else {
-        return await this.getSeekersForEmployer(userId);
+        return await this.getFilteredSeekersForEmployer(userId, filters);
       }
     } catch (error) {
       console.error('Error fetching swipe targets:', error);
@@ -58,60 +59,59 @@ class SupabaseService {
     }
   }
 
-  private async getVacanciesForSeeker(userId: string): Promise<Vacancy[]> {
-    // Get already swiped vacancy IDs
-    const { data: swipedVacancies } = await supabase
-      .from('swipes')
-      .select('target_id')
-      .eq('swiper_id', userId)
-      .eq('target_type', 'vacancy');
+  private async getFilteredVacanciesForSeeker(userId: string, filters?: SwipeFilters): Promise<Vacancy[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_filtered_vacancies_for_seeker', {
+        p_user_id: userId,
+        p_city: filters?.city || null,
+        p_skills: filters?.skills || null,
+        p_salary_min: filters?.salaryMin || null,
+        p_salary_max: filters?.salaryMax || null,
+        p_has_video: filters?.hasVideo || null
+      });
 
-    const swipedIds = swipedVacancies?.map(s => s.target_id) || [];
+      if (error) {
+        console.error('Error in getFilteredVacanciesForSeeker:', error);
+        throw error;
+      }
 
-    // Build query
-    let query = supabase
-      .from('vacancies')
-      .select(`
-        *,
-        employer:users!vacancies_employer_id_fkey(*)
-      `)
-      .neq('employer_id', userId);
-
-    if (swipedIds.length > 0) {
-      query = query.not('id', 'in', `(${swipedIds.join(',')})`);
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching filtered vacancies:', error);
+      throw error;
     }
+  }
 
-    const { data, error } = await query;
-    if (error) throw error;
+  private async getFilteredSeekersForEmployer(userId: string, filters?: SwipeFilters): Promise<User[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_filtered_seekers_for_employer', {
+        p_user_id: userId,
+        p_city: filters?.city || null,
+        p_skills: filters?.skills || null,
+        p_salary_min: filters?.salaryMin || null,
+        p_salary_max: filters?.salaryMax || null,
+        p_has_video: filters?.hasVideo || null
+      });
 
-    return data || [];
+      if (error) {
+        console.error('Error in getFilteredSeekersForEmployer:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching filtered seekers:', error);
+      throw error;
+    }
+  }
+
+  // Legacy methods for backward compatibility
+  private async getVacanciesForSeeker(userId: string): Promise<Vacancy[]> {
+    return this.getFilteredVacanciesForSeeker(userId);
   }
 
   private async getSeekersForEmployer(userId: string): Promise<User[]> {
-    // Get already swiped user IDs
-    const { data: swipedUsers } = await supabase
-      .from('swipes')
-      .select('target_id')
-      .eq('swiper_id', userId)
-      .eq('target_type', 'user');
-
-    const swipedIds = swipedUsers?.map(s => s.target_id) || [];
-
-    // Build query
-    let query = supabase
-      .from('users')
-      .select('*')
-      .eq('role', 'seeker')
-      .neq('id', userId);
-
-    if (swipedIds.length > 0) {
-      query = query.not('id', 'in', `(${swipedIds.join(',')})`);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    return data || [];
+    return this.getFilteredSeekersForEmployer(userId);
   }
 
   async createSwipe(
@@ -237,6 +237,53 @@ class SupabaseService {
     } catch (error) {
       console.error('Error deleting vacancy:', error);
       throw error;
+    }
+  }
+
+  // Filter and stats operations
+  async getAvailableCities(userRole: string): Promise<string[]> {
+    try {
+      const tableName = userRole === 'seeker' ? 'vacancies' : 'users';
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('city')
+        .not('city', 'is', null);
+
+      if (error) throw error;
+
+      const cities = [...new Set(data?.map(item => item.city).filter(Boolean))];
+      return cities.sort();
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      return [];
+    }
+  }
+
+  async getPopularSkills(userRole: string): Promise<string[]> {
+    try {
+      const skillsField = userRole === 'seeker' ? 'skills_required' : 'skills';
+      const tableName = userRole === 'seeker' ? 'vacancies' : 'users';
+      
+      const { data, error } = await supabase
+        .from(tableName)
+        .select(skillsField)
+        .not(skillsField, 'is', null);
+
+      if (error) throw error;
+
+      const allSkills = data?.flatMap(item => item[skillsField] || []) || [];
+      const skillCounts = allSkills.reduce((acc, skill) => {
+        acc[skill] = (acc[skill] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return Object.entries(skillCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([skill]) => skill);
+    } catch (error) {
+      console.error('Error fetching popular skills:', error);
+      return [];
     }
   }
 

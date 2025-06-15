@@ -268,6 +268,64 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_filtered_seekers_for_employer: {
+        Args: {
+          p_user_id: string
+          p_city?: string
+          p_skills?: string[]
+          p_salary_min?: number
+          p_salary_max?: number
+          p_has_video?: boolean
+        }
+        Returns: {
+          id: string
+          telegram_id: number
+          username: string
+          first_name: string
+          last_name: string
+          avatar_url: string
+          city: string
+          skills: string[]
+          experience: string
+          achievement: string
+          salary_expectation: number
+          resume_url: string
+          portfolio_url: string
+          video_resume_url: string
+          role: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      get_filtered_vacancies_for_seeker: {
+        Args: {
+          p_user_id: string
+          p_city?: string
+          p_skills?: string[]
+          p_salary_min?: number
+          p_salary_max?: number
+          p_has_video?: boolean
+        }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          city: string
+          skills_required: string[]
+          salary_min: number
+          salary_max: number
+          video_url: string
+          team_lead_name: string
+          team_lead_avatar: string
+          employer_id: string
+          created_at: string
+          updated_at: string
+          employer_first_name: string
+          employer_last_name: string
+          employer_company: string
+          employer_avatar_url: string
+        }[]
+      }
     }
     Enums: {
       swipe_direction: "like" | "dislike"

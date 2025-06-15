@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,13 +16,24 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
 import NetworkStatus from '@/components/NetworkStatus';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
+import { useSwipeFilters } from '@/hooks/useSwipeFilters';
 
 const Swipe = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const cardRefs = useRef<(TinderCardRef | null)[]>([]);
   const { showOnboarding, completeOnboarding } = useOnboarding();
-  const [filters, setFilters] = useState({});
+  
+  // Используем новый хук для фильтров
+  const {
+    filters,
+    updateFilters,
+    clearFilters,
+    hasActiveFilters,
+    activeFiltersCount,
+    availableCities,
+    popularSkills,
+  } = useSwipeFilters({ userRole: user?.role });
   
   const {
     currentTarget,
@@ -39,9 +49,9 @@ const Swipe = () => {
     isVacancy,
     targets,
     currentIndex,
-  } = useSwipeOptimized();
+  } = useSwipeOptimized(filters); // Передаем фильтры в хук
 
-  console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error);
+  console.log('Swipe component - user:', user, 'currentTarget:', currentTarget, 'loading:', isLoading, 'error:', error, 'filters:', filters);
 
   const handleCardSwipe = async (direction: string) => {
     console.log('Card swiped:', direction);
@@ -67,10 +77,9 @@ const Swipe = () => {
     refetchTargets();
   };
 
-  const handleFiltersChange = (newFilters: any) => {
-    setFilters(newFilters);
-    // TODO: Implement filtering logic in useSwipeOptimized hook
+  const handleFiltersChange = (newFilters: SwipeFilters) => {
     console.log('Filters changed:', newFilters);
+    updateFilters(newFilters);
   };
 
   if (isLoading) {

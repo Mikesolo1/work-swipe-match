@@ -7,15 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { User, MapPin, DollarSign, Plus, X, Link, FileText, Trash2, Settings, HelpCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { User, MapPin, DollarSign, Plus, X, Link, FileText, Trash2, Settings, HelpCircle, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCities } from '@/hooks/useCities';
 import { useJobCategories } from '@/hooks/useJobCategories';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useVideoUpload } from '@/hooks/useVideoUpload';
 import BottomNav from '@/components/BottomNav';
 import OnboardingModal from '@/components/onboarding/OnboardingModal';
+import VideoRecorder from '@/components/VideoRecorder';
+import VideoPlayer from '@/components/VideoPlayer';
 import { toast } from "@/components/ui/use-toast";
 
 const Profile = () => {
@@ -23,6 +27,7 @@ const Profile = () => {
   const { data: cities } = useCities();
   const { data: jobCategories } = useJobCategories();
   const { showOnboarding, startOnboarding, completeOnboarding } = useOnboarding();
+  const { uploadVideo, isUploading } = useVideoUpload();
   const navigate = useNavigate();
   
   const [profileData, setProfileData] = useState({
@@ -33,12 +38,14 @@ const Profile = () => {
     salary_expectation: '',
     company: '',
     resume_url: '',
-    portfolio_url: ''
+    portfolio_url: '',
+    video_resume_url: ''
   });
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -50,10 +57,81 @@ const Profile = () => {
         salary_expectation: user.salary_expectation?.toString() || '',
         company: user.company || '',
         resume_url: (user as any).resume_url || '',
-        portfolio_url: (user as any).portfolio_url || ''
+        portfolio_url: (user as any).portfolio_url || '',
+        video_resume_url: (user as any).video_resume_url || ''
       });
     }
   }, [user]);
+
+  const handleVideoRecorded = async (videoBlob: Blob) => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      console.log('Uploading video resume...', videoBlob.size, 'bytes');
+      
+      const videoUrl = await uploadVideo(videoBlob, user.id, 'resume');
+      
+      if (videoUrl) {
+        const updatedData = {
+          ...profileData,
+          video_resume_url: videoUrl
+        };
+        
+        setProfileData(updatedData);
+        
+        await updateProfile({
+          video_resume_url: videoUrl
+        });
+        
+        toast({
+          title: "Видео-резюме сохранено",
+          description: "Ваше видео-резюме успешно загружено",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving video resume:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось сохранить видео-резюме",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setShowVideoRecorder(false);
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    try {
+      setIsLoading(true);
+      
+      const updatedData = {
+        ...profileData,
+        video_resume_url: ''
+      };
+      
+      setProfileData(updatedData);
+      
+      await updateProfile({
+        video_resume_url: null
+      });
+      
+      toast({
+        title: "Видео удалено",
+        description: "Видео-резюме успешно удалено из профиля",
+      });
+    } catch (error) {
+      console.error('Error removing video:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить видео",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const addSkill = () => {
     if (newSkill.trim() && !profileData.skills.includes(newSkill.trim())) {
@@ -189,14 +267,52 @@ const Profile = () => {
         >
           <Card className="mb-6 matchwork-card">
             <CardHeader className="text-center">
-              <Avatar className="w-20 h-20 mx-auto mb-4">
-                <AvatarImage src={user.avatar_url || ''} />
-                <AvatarFallback>
-                  <User className="w-8 h-8" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="flex justify-center mb-4">
+                {profileData.video_resume_url && user.role === 'seeker' ? (
+                  <VideoPlayer 
+                    videoUrl={profileData.video_resume_url} 
+                    size="large" 
+                    showControls={true}
+                    className="shadow-lg"
+                  />
+                ) : (
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src={user.avatar_url || ''} />
+                    <AvatarFallback>
+                      <User className="w-8 h-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
               <CardTitle className="text-xl text-matchwork-text">{user.first_name} {user.last_name}</CardTitle>
               <p className="text-matchwork-text-secondary">@{user.username}</p>
+              
+              {user.role === 'seeker' && (
+                <div className="flex justify-center gap-2 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVideoRecorder(true)}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <Video size={16} />
+                    {profileData.video_resume_url ? 'Перезаписать видео' : 'Записать видео-резюме'}
+                  </Button>
+                  
+                  {profileData.video_resume_url && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveVideo}
+                      disabled={isLoading}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardHeader>
           </Card>
         </motion.div>
@@ -553,6 +669,19 @@ const Profile = () => {
         onClose={completeOnboarding}
         userRole={user?.role || null}
       />
+
+      <Dialog open={showVideoRecorder} onOpenChange={setShowVideoRecorder}>
+        <DialogContent className="p-0 max-w-lg">
+          <DialogHeader className="hidden">
+            <DialogTitle>Запись видео-резюме</DialogTitle>
+          </DialogHeader>
+          <VideoRecorder
+            onVideoRecorded={handleVideoRecorded}
+            onClose={() => setShowVideoRecorder(false)}
+            maxDuration={90}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

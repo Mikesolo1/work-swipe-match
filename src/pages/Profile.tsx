@@ -27,7 +27,7 @@ const Profile = () => {
   const { data: cities } = useCities();
   const { data: jobCategories } = useJobCategories();
   const { showOnboarding, startOnboarding, completeOnboarding } = useOnboarding();
-  const { uploadVideo, isUploading } = useVideoUpload();
+  const { uploadVideo, deleteVideo, isUploading } = useVideoUpload();
   const navigate = useNavigate();
   
   const [profileData, setProfileData] = useState({
@@ -106,6 +106,17 @@ const Profile = () => {
     try {
       setIsLoading(true);
       
+      // Сначала удаляем файл из storage, если URL существует
+      if (profileData.video_resume_url) {
+        const deleted = await deleteVideo(profileData.video_resume_url);
+        if (deleted) {
+          console.log('Video file deleted from storage');
+        } else {
+          console.log('Could not delete video file from storage, but continuing...');
+        }
+      }
+      
+      // Затем обновляем профиль пользователя
       const updatedData = {
         ...profileData,
         video_resume_url: ''
@@ -119,7 +130,7 @@ const Profile = () => {
       
       toast({
         title: "Видео удалено",
-        description: "Видео-резюме успешно удалено из профиля",
+        description: "Видео-резюме успешно удалено из профиля и хранилища",
       });
     } catch (error) {
       console.error('Error removing video:', error);

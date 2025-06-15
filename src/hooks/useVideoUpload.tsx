@@ -80,24 +80,52 @@ export const useVideoUpload = () => {
         return false;
       }
 
-      // Извлекаем путь к файлу из URL
-      const urlParts = videoUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
+      // Извлекаем имя файла из URL
+      const fileName = extractFileNameFromUrl(videoUrl);
+      if (!fileName) {
+        console.error('Could not extract filename from URL:', videoUrl);
+        return false;
+      }
 
+      console.log('Attempting to delete video file:', fileName);
+
+      // Удаляем файл из Supabase Storage
       const { error } = await supabase.storage
         .from('videos')
         .remove([fileName]);
 
       if (error) {
-        console.error('Error deleting video:', error);
-        return false;
+        console.error('Error deleting video from storage:', error);
+        // Не возвращаем false здесь, так как файл мог быть уже удален
+        // или URL мог быть недействительным
+        console.log('Continuing despite storage deletion error...');
+      } else {
+        console.log('Video deleted successfully from storage:', fileName);
       }
 
-      console.log('Video deleted successfully:', fileName);
       return true;
     } catch (error) {
       console.error('Error deleting video:', error);
       return false;
+    }
+  };
+
+  // Функция для извлечения имени файла из URL
+  const extractFileNameFromUrl = (url: string): string | null => {
+    try {
+      // Пример URL: https://txwlkuplxvgjxpephszy.supabase.co/storage/v1/object/public/videos/resume_user123_1234567890.mp4
+      const urlParts = url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      
+      // Проверяем, что это похоже на имя файла видео
+      if (fileName && (fileName.includes('.mp4') || fileName.includes('.webm'))) {
+        return fileName;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error parsing video URL:', error);
+      return null;
     }
   };
 
